@@ -1,0 +1,9 @@
+1: A snake that never dies
+what can force a snake to die?
+- there is no path from H to T with degree augmentation
+
+2: A fast snake
+what is the shortest path P from H to A such that (1) is satisfied?
+
+3: An optimal snake
+are there longer paths that result in shorter solve times?
