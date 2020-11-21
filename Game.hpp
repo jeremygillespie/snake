@@ -1,9 +1,8 @@
 #pragma once
 
-#include <vector>
 #include <random>
 
-using std::vector;
+#include "State.hpp"
 
 enum direction {RIGHT, LEFT, UP, DOWN};
 
@@ -15,7 +14,7 @@ public:
     bool update(direction d);
 
     const unsigned width, height;
-    unsigned headX, headY, tailX, tailY, appleX, appleY, snakeLength;
+    unsigned headX, headY, appleX, appleY, snakeLength;
     vector<vector<int>> state;
 
 private:
@@ -31,8 +30,6 @@ Game::Game(unsigned x, unsigned y, unsigned length, unsigned seed) :
     height{y},
     headX{(width+1)/2 - 1},
     headY{(height+1)/2 - 1},
-    tailX{headX},
-    tailY{headY},
     appleX{0},
     appleY{0},
     snakeLength{0},
@@ -45,6 +42,8 @@ Game::Game(unsigned x, unsigned y, unsigned length, unsigned seed) :
 
     state[headX][headY] = length;
     ++snakeLength;
+
+    int tailX = headX, tailY = headY;
 
     direction d = DOWN;
     while(snakeLength < length)
@@ -160,11 +159,7 @@ void Game::decrement()
         {
             if(state[x][y] > 0)
             {
-                if(--state[x][y] == 1)
-                {
-                    tailX = x;
-                    tailY = y;
-                }
+                --state[x][y];
             }
         }
     }
