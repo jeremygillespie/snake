@@ -69,5 +69,6 @@ void print(Game g)
         }
         cout << "\n";
     }
+    cout << g.tailX << "," << g.tailY << "\n";
     cout << "\n";
 };

@@ -14,8 +14,8 @@ public:
 
     bool update(direction d);
 
-    const int width, height;
-    int headX, headY, tailX, tailY, appleX, appleY, snakeLength;
+    const unsigned width, height;
+    unsigned headX, headY, tailX, tailY, appleX, appleY, snakeLength;
     vector<vector<int>> state;
 
 private:
@@ -159,7 +159,13 @@ void Game::decrement()
         for(int y=0; y<height; ++y)
         {
             if(state[x][y] > 0)
-                --state[x][y];
+            {
+                if(--state[x][y] == 1)
+                {
+                    tailX = x;
+                    tailY = y;
+                }
+            }
         }
     }
 }
