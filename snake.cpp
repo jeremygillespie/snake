@@ -6,17 +6,17 @@ int main(int argc, char *argv[])
     Game g = Game(10, 10);
     g.print();
 
-    std::string in;
-    while(getline(std::cin, in))
+    for(char c;;)
     {
+        std::cin >> c;
         bool cont = true;
-        if(in.compare("w") == 0)
+        if(c == 'w')
             cont = g.update(UP);
-        else if(in.compare("s") == 0)
+        else if(c == 's')
             cont = g.update(DOWN);
-        else if(in.compare("a") == 0)
+        else if(c == 'a')
             cont = g.update(LEFT);
-        else if(in.compare("d") == 0)
+        else if(c == 'd')
             cont = g.update(RIGHT);
         else
             break;
