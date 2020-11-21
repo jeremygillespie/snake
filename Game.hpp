@@ -30,7 +30,7 @@ public:
     void print();
 
     const int width, height;
-    int headX, headY, tailX, tailY, appleX, appleY, nEmpty;
+    int headX, headY, tailX, tailY, appleX, appleY, remaining;
     vector<vector<char>> state;
 
 private:
@@ -43,13 +43,13 @@ private:
 Game::Game(int x, int y, unsigned seed) :
     width{x},
     height{y},
-    headX{width/2 - 1},
-    headY{height/2 - 1},
+    headX{(width+1)/2 - 1},
+    headY{(height+1)/2 - 1},
     tailX{headX},
     tailY{headY - 3},
     appleX{0},
     appleY{0},
-    nEmpty{width*height - 4},
+    remaining{width*height},
     state(x, vector<char>(y, EMPTY)),
     engine(seed)
 {
@@ -58,9 +58,18 @@ Game::Game(int x, int y, unsigned seed) :
         unsigned s = std::chrono::system_clock::now().time_since_epoch().count();
         engine = std::default_random_engine(s);
     }
+
     state[headX][headY] = HEAD;
-    for(int i=1; i<=3; ++i)
-        state[headX][headY-i] = UP;
+    --remaining;
+
+    if(tailY < 0)
+        tailY = 0;
+    for(int y = tailY; y < headY; ++y)
+    {
+        state[tailX][y] = UP;
+        --remaining;
+    }
+
     apple();
 };
 
@@ -114,6 +123,7 @@ bool Game::postupdate()
             return true;
         case APPLE:
             state[headX][headY] = HEAD;
+            --remaining;
             apple();
             return true;
         default:
@@ -126,7 +136,7 @@ void Game::apple()
     int x = 0, y = 0;
 
     // pick a random emtpy space
-    std::uniform_int_distribution<int> dist(1,nEmpty);
+    std::uniform_int_distribution<int> dist(1,remaining);
     int n = dist(engine);
 
     // skip n-1 emtpy spaces
@@ -152,7 +162,6 @@ void Game::apple()
     appleX = x;
     appleY = y;
     state[x][y] = APPLE;
-    --nEmpty;
 };
 
 void Game::print()
@@ -166,4 +175,5 @@ void Game::print()
         cout << "\n";
     }
     cout << "\n";
+    cout << "Apples left: " << remaining << "\n";
 };

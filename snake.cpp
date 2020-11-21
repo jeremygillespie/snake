@@ -1,14 +1,24 @@
+#include <string>
+
 #include "Game.hpp"
+
+using namespace std;
 
 int main(int argc, char *argv[])
 {
+    int x = 10, y = 10;
+    if(argc > 2)
+    {
+        x = stoi(argv[1]);
+        y = stoi(argv[2]);
+    }
 
-    Game g = Game(10, 10);
+    Game g = Game(x, y);
     g.print();
 
     for(char c;;)
     {
-        std::cin >> c;
+        cin >> c;
         bool cont = true;
         if(c == 'w')
             cont = g.update(UP);
