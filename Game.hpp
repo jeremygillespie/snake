@@ -1,82 +1,113 @@
 #pragma once
 
-#include <iostream>
 #include <vector>
 #include <random>
-#include <chrono>
 
 using std::vector;
-using std::cout;
 
-const char EMPTY = 0,
-    HEAD = 1,
-    APPLE = 2,
-    RIGHT = 3,
-    LEFT = 4,
-    UP = 5,
-    DOWN = 6;
-
-const char output[] = {
-    '.','@','O','#','#','#','#'
-};
+enum direction {RIGHT, LEFT, UP, DOWN};
 
 class Game
 {
 public:
-    Game(int x, int y, unsigned seed=0);
+    Game(unsigned x, unsigned y, unsigned length, unsigned seed=0);
 
-    bool update(char direction);
-
-    void print();
+    bool update(direction d);
 
     const int width, height;
     int headX, headY, tailX, tailY, appleX, appleY, snakeLength;
-    vector<vector<char>> state;
+    vector<vector<int>> state;
 
 private:
     bool postupdate();
+    void decrement();
     void apple();
 
     std::default_random_engine engine;
 };
 
-Game::Game(int x, int y, unsigned seed) :
+Game::Game(unsigned x, unsigned y, unsigned length, unsigned seed) :
     width{x},
     height{y},
     headX{(width+1)/2 - 1},
     headY{(height+1)/2 - 1},
     tailX{headX},
-    tailY{headY - 3},
+    tailY{headY},
     appleX{0},
     appleY{0},
     snakeLength{0},
-    state(x, vector<char>(y, EMPTY)),
+    state(x, vector<int>(y, 0)),
     engine(seed)
 {
-    if(seed == 0)
-    {
-        unsigned s = std::chrono::system_clock::now().time_since_epoch().count();
-        engine = std::default_random_engine(s);
-    }
+    if(length > width*height / 2 + width + height ||
+        width < 2 || height < 2)
+        return;
 
-    state[headX][headY] = HEAD;
+    state[headX][headY] = length;
     ++snakeLength;
 
-    if(tailY < 0)
-        tailY = 0;
-    for(int y = tailY; y < headY; ++y)
+    direction d = DOWN;
+    while(snakeLength < length)
     {
-        state[tailX][y] = UP;
-        ++snakeLength;
+        switch(d)
+        {
+            case DOWN:
+                if(tailY > 0 && state[tailX][tailY-1] == 0)
+                {
+                    --tailY;
+                    state[tailX][tailY] = length - snakeLength;
+                    ++snakeLength;
+                }
+                else
+                {
+                    d = LEFT;
+                }
+                break;
+            case LEFT:
+                if(tailX > 0 && state[tailX-1][tailY] == 0)
+                {
+                    --tailX;
+                    state[tailX][tailY] = length - snakeLength;
+                    ++snakeLength;
+                }
+                else
+                {
+                    d = UP;
+                }
+                break;
+            case UP:
+                if(tailY < height-1 && state[tailX][tailY+1] == 0)
+                {
+                    ++tailY;
+                    state[tailX][tailY] = length - snakeLength;
+                    ++snakeLength;
+                }
+                else
+                {
+                    d = RIGHT;
+                }
+                break;
+            case RIGHT:
+                if(tailX < width-1 && state[tailX+1][tailY] == 0)
+                {
+                    ++tailX;
+                    state[tailX][tailY] = length - snakeLength;
+                    ++snakeLength;
+                }
+                else
+                {
+                    d = DOWN;
+                }
+                break;
+        }
     }
 
     apple();
 };
 
-bool Game::update(char direction)
+bool Game::update(direction d)
 {
-    state[headX][headY] = direction;
-    switch(direction)
+    switch(d)
     {
         case RIGHT:
             if(++headX >= width)
@@ -101,35 +132,37 @@ bool Game::update(char direction)
 
 bool Game::postupdate()
 {
-    char taildir = state[tailX][tailY];
-
     switch(state[headX][headY])
     {
-        case EMPTY:
-            state[headX][headY] = HEAD;
-
-            state[tailX][tailY] = EMPTY;
-            switch(taildir)
-            {
-                case RIGHT:
-                    ++tailX; break;
-                case LEFT:
-                    --tailX; break;
-                case UP:
-                    ++tailY; break;
-                case DOWN:
-                    --tailY; break;
-            }
+        case 1:
+            decrement();
+            state[headX][headY] = snakeLength;
             return true;
-        case APPLE:
-            state[headX][headY] = HEAD;
+        case 0:
+            decrement();
+            state[headX][headY] = snakeLength;
+            return true;
+        case -1:
             ++snakeLength;
+            state[headX][headY] = snakeLength;
             apple();
             return true;
         default:
             return false;
     }
 };
+
+void Game::decrement()
+{
+    for(int x=0; x<width; ++x)
+    {
+        for(int y=0; y<height; ++y)
+        {
+            if(state[x][y] > 0)
+                --state[x][y];
+        }
+    }
+}
 
 void Game::apple()
 {
@@ -142,7 +175,7 @@ void Game::apple()
     // skip n-1 emtpy spaces
     for(int i=1; i<n;)
     {
-        if(state[x][y] == EMPTY)
+        if(state[x][y] == 0)
             ++i;
         if(++x == width)
         {
@@ -151,7 +184,7 @@ void Game::apple()
         }
     }
     // find the nth empty space
-    while(state[x][y] != EMPTY)
+    while(state[x][y] != 0)
     {
         if(++x == width)
         {
@@ -161,18 +194,5 @@ void Game::apple()
     }
     appleX = x;
     appleY = y;
-    state[x][y] = APPLE;
-};
-
-void Game::print()
-{
-    for(int y=height-1; y>=0; --y)
-    {
-        for(int x=0; x<width; ++x)
-        {
-            cout << output[state[x][y]] << " ";
-        }
-        cout << "\n";
-    }
-    cout << "\n";
+    state[x][y] = -1;
 };
