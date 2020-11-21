@@ -30,7 +30,7 @@ public:
     void print();
 
     const int width, height;
-    int headX, headY, tailX, tailY, appleX, appleY, remaining;
+    int headX, headY, tailX, tailY, appleX, appleY, snakeLength;
     vector<vector<char>> state;
 
 private:
@@ -49,7 +49,7 @@ Game::Game(int x, int y, unsigned seed) :
     tailY{headY - 3},
     appleX{0},
     appleY{0},
-    remaining{width*height},
+    snakeLength{0},
     state(x, vector<char>(y, EMPTY)),
     engine(seed)
 {
@@ -60,14 +60,14 @@ Game::Game(int x, int y, unsigned seed) :
     }
 
     state[headX][headY] = HEAD;
-    --remaining;
+    ++snakeLength;
 
     if(tailY < 0)
         tailY = 0;
     for(int y = tailY; y < headY; ++y)
     {
         state[tailX][y] = UP;
-        --remaining;
+        ++snakeLength;
     }
 
     apple();
@@ -123,7 +123,7 @@ bool Game::postupdate()
             return true;
         case APPLE:
             state[headX][headY] = HEAD;
-            --remaining;
+            ++snakeLength;
             apple();
             return true;
         default:
@@ -136,7 +136,7 @@ void Game::apple()
     int x = 0, y = 0;
 
     // pick a random emtpy space
-    std::uniform_int_distribution<int> dist(1,remaining);
+    std::uniform_int_distribution<int> dist(1,width*height-snakeLength);
     int n = dist(engine);
 
     // skip n-1 emtpy spaces
@@ -175,5 +175,4 @@ void Game::print()
         cout << "\n";
     }
     cout << "\n";
-    cout << "Apples left: " << remaining << "\n";
 };
