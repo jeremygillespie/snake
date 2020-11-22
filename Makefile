@@ -1,2 +1,14 @@
+NAME=snake
+
+SRC_PATH=./src
+OUT_PATH=./bin
+INC_PATH=./include
+
+FILES=${SRC_PATH}/*.cpp
+
+CC=g++
+CFLAGS=-Wall -std=c++11
+
 all:
-	g++ snake.cpp -o snake -std=c++11
+	mkdir -p ${OUT_PATH}
+	${CC} ${CFLAGS} -I${INC_PATH} ${FILES} -o ${OUT_PATH}/${NAME}
