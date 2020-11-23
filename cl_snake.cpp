@@ -9,28 +9,14 @@ using namespace std;
 
 void print(const State &s);
 
-int main(int argc, char *argv[])
+int main()
 {
-    int w = 10, h = 10, l = 4;
-    if (argc > 2)
-    {
-        w = stoi(argv[1]);
-        h = stoi(argv[2]);
-    }
-    if (argc > 3)
-    {
-        l = stoi(argv[3]);
-    }
-
-    State::width = w;
-    State::height = h;
-
     int seed = chrono::system_clock::now().time_since_epoch().count();
     default_random_engine engine(seed);
 
-    State s = State(l);
+    State s = State();
 
-    uniform_int_distribution<> dist(0, State::size() - s.length - 1);
+    uniform_int_distribution<> dist(0, State::SIZE - s.length - 1);
     s = State(s, dist(engine));
 
     print(s);
@@ -62,9 +48,17 @@ int main(int argc, char *argv[])
         {
             int l = s.length;
             s = State(s, dir);
+
+            if (s.length == State::SIZE)
+            {
+                print(s);
+                cout << "You win!\n";
+                return 0;
+            }
+
             if (l != s.length)
             {
-                uniform_int_distribution<> dist(0, State::size() - s.length - 1);
+                uniform_int_distribution<> dist(0, State::SIZE - s.length - 1);
                 s = State(s, dist(engine));
             }
         }
@@ -75,20 +69,14 @@ int main(int argc, char *argv[])
         }
 
         print(s);
-
-        if (s.length == State::size())
-        {
-            cout << "You win!\n";
-            return 0;
-        }
     }
 }
 
 void print(const State &s)
 {
-    for (int y = s.height - 1; y >= 0; --y)
+    for (int y = State::HEIGHT - 1; y >= 0; --y)
     {
-        for (int x = 0; x < s.width; ++x)
+        for (int x = 0; x < State::WIDTH; ++x)
         {
             int c = s.val(s.point(x, y));
             if (c == 0)

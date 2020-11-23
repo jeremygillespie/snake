@@ -17,13 +17,12 @@ class State
 public:
     static const int APPLE = -1;
     static const int EMPTY = 0;
-
-    inline static int width;
-    inline static int height;
-    static int size() { return width * height; };
+    static const int WIDTH = 6;
+    static const int HEIGHT = 6;
+    static const int SIZE = WIDTH * HEIGHT;
 
     // new state
-    State(int l);
+    State();
 
     // state after move
     State(const State &prev, direction dir);

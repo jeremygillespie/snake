@@ -1,39 +1,17 @@
 #include "State.hpp"
 
-State::State(int l)
-    : head{0}, apple{0}, length{l}, time{0},
-      board(width * height)
+State::State()
+    : head{0}, apple{0}, length{(HEIGHT + 1) / 2}, time{0},
+      board(SIZE)
 {
-    if (length <= (height + 1) / 2)
+    int x = length - 1;
+    int y = (WIDTH + 1) / 2 - 1;
+
+    head = point(x, y);
+
+    for (int i = 0; i < length; ++i)
     {
-        int x = (width + 1) / 2 - 1;
-        int y = (height + 1) / 2 - 1;
-
-        head = point(x, y);
-
-        for (int i = 0; i < length; ++i)
-        {
-            val(point(x, y - i)) = length - i;
-        }
-    }
-    else
-    {
-        for (int i = 0; i < length; ++i)
-        {
-            int x = xCoord(i);
-            int y = yCoord(i);
-            if (x % 2 == 1)
-            {
-                y = height - y - 1;
-            }
-
-            val(point(x, y)) = i + 1;
-
-            if (i == length - 1)
-            {
-                head = i;
-            }
-        }
+        val(point(x, y - i)) = length - i;
     }
 
     nextApple(0);
@@ -54,8 +32,11 @@ State::State(const State &prev, direction dir)
     {
         ++length;
         val(head) = length;
-        nextApple(0);
-        val(apple) = APPLE;
+        if (length < SIZE)
+        {
+            nextApple(0);
+            val(apple) = APPLE;
+        }
     }
     else
     {
@@ -101,11 +82,11 @@ const bool State::canMove(direction dir) const
     switch (dir)
     {
     case direction::right:
-        return xCoord(head) < width - 1 && val(point(dir)) <= 1;
+        return xCoord(head) < WIDTH - 1 && val(point(dir)) <= 1;
     case direction::left:
         return xCoord(head) > 0 && val(point(dir)) <= 1;
     case direction::up:
-        return yCoord(head) < height - 1 && val(point(dir)) <= 1;
+        return yCoord(head) < HEIGHT - 1 && val(point(dir)) <= 1;
     default:
         return yCoord(head) > 0 && val(point(dir)) <= 1;
     }
@@ -117,7 +98,7 @@ const int State::val(int p) const { return board[p]; }
 
 const int State::point(direction dir) const { return point(head, dir); }
 
-const int State::point(int x, int y) const { return x * height + y; }
+const int State::point(int x, int y) const { return x * HEIGHT + y; }
 
 const int State::point(int p, direction dir) const
 {
@@ -134,9 +115,9 @@ const int State::point(int p, direction dir) const
     }
 }
 
-const int State::xCoord(int p) const { return p / height; }
+const int State::xCoord(int p) const { return p / HEIGHT; }
 
-const int State::yCoord(int p) const { return p % height; }
+const int State::yCoord(int p) const { return p % HEIGHT; }
 
 void State::nextApple(int p)
 {
