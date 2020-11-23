@@ -30,7 +30,7 @@ public:
     // state with apple offset by n spaces
     State(const State &prev, int n);
 
-    int head, apple, length, time;
+    int head, apple, length, time, timeSinceApple;
 
     bool canMove(direction dir) const;
 
@@ -48,6 +48,7 @@ public:
 
 private:
     vector<int> board;
+    vector<bool> visited;
 
     void nextApple(int p);
 };
