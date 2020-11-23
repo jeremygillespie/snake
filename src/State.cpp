@@ -1,13 +1,9 @@
 #include "State.hpp"
 
-State::State(int w, int h, int l)
-    : width{w}, height{h},
-      head{0}, apple{0}, length{l}, time{0},
+State::State(int l)
+    : head{0}, apple{0}, length{l}, time{0},
       board(width * height)
 {
-    if (l >= width * height)
-        return;
-
     if (length <= (height + 1) / 2)
     {
         int x = (width + 1) / 2 - 1;
@@ -45,9 +41,7 @@ State::State(int w, int h, int l)
 }
 
 State::State(const State &prev, direction dir)
-    : width{prev.width},
-      height{prev.height},
-      head{prev.head},
+    : head{prev.head},
       apple{prev.apple},
       length{prev.length},
       time{prev.time + 1},
@@ -75,9 +69,7 @@ State::State(const State &prev, direction dir)
 }
 
 State::State(const State &prev)
-    : width{prev.width},
-      height{prev.height},
-      head{prev.head},
+    : head{prev.head},
       apple{prev.apple},
       length{prev.length},
       time{prev.time},
@@ -89,25 +81,18 @@ State::State(const State &prev)
 }
 
 State::State(const State &prev, int n)
-    : width{prev.width},
-      height{prev.height},
-      head{prev.head},
+    : head{prev.head},
       apple{prev.apple},
       length{prev.length},
       time{prev.time},
       board{prev.board}
 {
-    if(n > width * height - length)
-    {
-        return;
-    }
-
     val(apple) = 0;
-    for(int i = 0; i < n; ++i)
+    for (int i = 0; i < n; ++i)
     {
         nextApple(apple + 1);
     }
-    
+
     val(apple) = APPLE;
 }
 
@@ -116,13 +101,13 @@ const bool State::canMove(direction dir) const
     switch (dir)
     {
     case direction::right:
-        return xCoord(head) < width - 1 && val(point(dir)) <= EMPTY;
+        return xCoord(head) < width - 1 && val(point(dir)) <= 1;
     case direction::left:
-        return xCoord(head) > 0 && val(point(dir)) <= EMPTY;
+        return xCoord(head) > 0 && val(point(dir)) <= 1;
     case direction::up:
-        return yCoord(head) < height - 1 && val(point(dir)) <= EMPTY;
+        return yCoord(head) < height - 1 && val(point(dir)) <= 1;
     default:
-        return yCoord(head) > 0 && val(point(dir)) <= EMPTY;
+        return yCoord(head) > 0 && val(point(dir)) <= 1;
     }
 }
 

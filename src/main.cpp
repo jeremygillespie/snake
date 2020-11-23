@@ -1,5 +1,7 @@
 #include <string>
 #include <iostream>
+#include <chrono>
+#include <random>
 
 #include "State.hpp"
 
@@ -9,7 +11,7 @@ void print(const State &s);
 
 int main(int argc, char *argv[])
 {
-    int w = 10, h = 10, l = 4, n = 4;
+    int w = 10, h = 10, l = 4;
     if (argc > 2)
     {
         w = stoi(argv[1]);
@@ -19,39 +21,63 @@ int main(int argc, char *argv[])
     {
         l = stoi(argv[3]);
     }
-    if (argc > 4)
-    {
-        n = stoi(argv[4]);
-    }
 
-    State s(State(w, h, l), n);
+    State::width = w;
+    State::height = h;
+
+    int seed = chrono::system_clock::now().time_since_epoch().count();
+    default_random_engine engine(seed);
+
+    State s = State(l);
+
+    uniform_int_distribution<> dist(0, State::size() - s.length - 1);
+    s = State(s, dist(engine));
 
     print(s);
 
-    // int s = std::chrono::system_clock::now().time_since_epoch().count();
+    for (char c;;)
+    {
+        cin >> c;
+        direction dir;
 
-    // Game g = Game(x, y, l, s);
-    // print(g);
+        switch (c)
+        {
+        case 'w':
+            dir = direction::up;
+            break;
+        case 's':
+            dir = direction::down;
+            break;
+        case 'a':
+            dir = direction::left;
+            break;
+        case 'd':
+            dir = direction::right;
+            break;
+        default:
+            return 0;
+        }
 
-    // for(char c;;)
-    // {
-    //     cin >> c;
-    //     bool cont = true;
-    //     if(c == 'w')
-    //         cont = g.update(UP);
-    //     else if(c == 's')
-    //         cont = g.update(DOWN);
-    //     else if(c == 'a')
-    //         cont = g.update(LEFT);
-    //     else if(c == 'd')
-    //         cont = g.update(RIGHT);
-    //     else
-    //         break;
-    //     if(cont == false)
-    //         break;
-    //     else
-    //         print(g);
-    // }
+        if (s.canMove(dir))
+        {
+            int l = s.length;
+            s = State(s, dir);
+            if (l != s.length)
+            {
+                uniform_int_distribution<> dist(0, State::size() - s.length - 1);
+                s = State(s, dist(engine));
+            }
+        }
+        else
+        {
+            return 0;
+        }
+
+        print(s);
+
+        if (s.length == State::size())
+            return 0;
+    }
 }
 
 void print(const State &s)
@@ -75,5 +101,5 @@ void print(const State &s)
         }
         cout << "\n";
     }
-    cout << "\n";
+    cout << "Time: " << s.time << "\n";
 };

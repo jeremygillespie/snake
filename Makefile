@@ -7,7 +7,7 @@ INC_PATH=./include
 FILES=${SRC_PATH}/*.cpp
 
 CC=g++
-CFLAGS=-Wall -std=c++11
+CFLAGS=-Wall -std=c++17
 
 all:
 	mkdir -p ${OUT_PATH}

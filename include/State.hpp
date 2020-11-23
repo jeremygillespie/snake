@@ -18,8 +18,12 @@ public:
     static const int APPLE = -1;
     static const int EMPTY = 0;
 
+    inline static int width;
+    inline static int height;
+    static int size() { return width * height; };
+
     // new state
-    State(int w, int h, int l);
+    State(int l);
 
     // state after move
     State(const State &prev, direction dir);
@@ -30,8 +34,6 @@ public:
 
     // state with apple offset by n spaces
     State(const State &prev, int n);
-
-    const int width, height;
 
     int head, apple, length, time;
 
