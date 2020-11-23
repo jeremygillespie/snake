@@ -1,5 +1,7 @@
 #include "State.hpp"
 
+namespace Snake {
+
 State::State()
     : head{0}, apple{0}, length{(HEIGHT + 1) / 2}, time{0},
       board(SIZE)
@@ -77,7 +79,7 @@ State::State(const State &prev, int n)
     val(apple) = APPLE;
 }
 
-const bool State::canMove(direction dir) const
+bool State::canMove(direction dir) const
 {
     switch (dir)
     {
@@ -94,13 +96,13 @@ const bool State::canMove(direction dir) const
 
 int &State::val(int p) { return board[p]; }
 
-const int State::val(int p) const { return board[p]; }
+int State::val(int p) const { return board[p]; }
 
-const int State::point(direction dir) const { return point(head, dir); }
+int State::point(direction dir) const { return point(head, dir); }
 
-const int State::point(int x, int y) const { return x * HEIGHT + y; }
+int State::point(int x, int y) const { return x * HEIGHT + y; }
 
-const int State::point(int p, direction dir) const
+int State::point(int p, direction dir) const
 {
     switch (dir)
     {
@@ -115,9 +117,9 @@ const int State::point(int p, direction dir) const
     }
 }
 
-const int State::xCoord(int p) const { return p / HEIGHT; }
+int State::xCoord(int p) const { return p / HEIGHT; }
 
-const int State::yCoord(int p) const { return p % HEIGHT; }
+int State::yCoord(int p) const { return p % HEIGHT; }
 
 void State::nextApple(int p)
 {
@@ -127,3 +129,5 @@ void State::nextApple(int p)
     }
     apple = p;
 }
+
+} // namespace Snake

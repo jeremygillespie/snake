@@ -1,16 +1,16 @@
-#include <string>
-#include <iostream>
 #include <chrono>
+#include <iostream>
 #include <random>
+#include <string>
 
 #include "State.hpp"
 
 using namespace std;
+using namespace Snake;
 
 void print(const State &s);
 
-int main()
-{
+int main() {
     int seed = chrono::system_clock::now().time_since_epoch().count();
     default_random_engine engine(seed);
 
@@ -21,13 +21,11 @@ int main()
 
     print(s);
 
-    for (char c;;)
-    {
+    for (char c;;) {
         cin >> c;
         direction dir;
 
-        switch (c)
-        {
+        switch (c) {
         case 'w':
             dir = direction::up;
             break;
@@ -44,26 +42,21 @@ int main()
             return 0;
         }
 
-        if (s.canMove(dir))
-        {
+        if (s.canMove(dir)) {
             int l = s.length;
             s = State(s, dir);
 
-            if (s.length == State::SIZE)
-            {
+            if (s.length == State::SIZE) {
                 print(s);
                 cout << "You win!\n";
                 return 0;
             }
 
-            if (l != s.length)
-            {
+            if (l != s.length) {
                 uniform_int_distribution<> dist(0, State::SIZE - s.length - 1);
                 s = State(s, dist(engine));
             }
-        }
-        else
-        {
+        } else {
             cout << "You lose!\n";
             return 0;
         }
@@ -72,12 +65,9 @@ int main()
     }
 }
 
-void print(const State &s)
-{
-    for (int y = State::HEIGHT - 1; y >= 0; --y)
-    {
-        for (int x = 0; x < State::WIDTH; ++x)
-        {
+void print(const State &s) {
+    for (int y = State::HEIGHT - 1; y >= 0; --y) {
+        for (int x = 0; x < State::WIDTH; ++x) {
             int c = s.val(s.point(x, y));
             if (c == 0)
                 cout << ".";

@@ -1,16 +1,14 @@
-SRC_PATH=./src
 OUT_PATH=./bin
-INC_PATH=./include
+FILES=State.cpp
 
-FILES=${SRC_PATH}/*.cpp
+CXX=g++
+CXXFLAGS=-Wall -Wextra -std=c++11
 
-CC=g++
-CFLAGS=-Wall -std=c++17
+cl_snake: bin
+	${CXX} ${CXXFLAGS} ${FILES} cl_snake.cpp -o bin/cl_snake
 
-cl_snake:
-	mkdir -p ${OUT_PATH}
-	${CC} ${CFLAGS} -I${INC_PATH} ${FILES} cl_snake.cpp -o ${OUT_PATH}/cl_snake
+minmax: bin
+	${CXX} ${CXXFLAGS} ${FILES} minmax.cpp -o bin/minmax
 
-minimax:
-	mkdir -p ${OUT_PATH}
-	${CC} ${CFLAGS} -I${INC_PATH} ${FILES} minimax.cpp -o ${OUT_PATH}/minimax
+bin:
+	mkdir -p ./bin
