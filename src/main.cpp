@@ -9,7 +9,7 @@ void print(const State &s);
 
 int main(int argc, char *argv[])
 {
-    int w = 10, h = 10, l = 4;
+    int w = 10, h = 10, l = 4, n = 4;
     if (argc > 2)
     {
         w = stoi(argv[1]);
@@ -19,8 +19,12 @@ int main(int argc, char *argv[])
     {
         l = stoi(argv[3]);
     }
+    if (argc > 4)
+    {
+        n = stoi(argv[4]);
+    }
 
-    State s(w, h, l);
+    State s(State(w, h, l), n);
 
     print(s);
 
@@ -56,7 +60,7 @@ void print(const State &s)
     {
         for (int x = 0; x < s.width; ++x)
         {
-            int c = s.val(x, y);
+            int c = s.val(s.point(x, y));
             if (c == 0)
                 cout << ".";
             else if (c == -1)

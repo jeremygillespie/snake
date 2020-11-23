@@ -24,8 +24,12 @@ public:
     // state after move
     State(const State &prev, direction dir);
 
-    // state with different apple
+    // state with next possible apple
+    // equivalent to n=1
     State(const State &prev);
+
+    // state with apple offset by n spaces
+    State(const State &prev, int n);
 
     const int width, height;
 
@@ -34,10 +38,7 @@ public:
     const bool canMove(direction dir) const;
 
     int &val(int p);
-    int &val(int x, int y);
-
-    const int &val(int p) const;
-    const int &val(int x, int y) const;
+    const int val(int p) const;
 
     const int point(int p, direction dir) const;
     const int point(direction dir) const;
