@@ -70,13 +70,17 @@ int main(int argc, char *argv[])
         }
         else
         {
+            cout << "You lose!\n";
             return 0;
         }
 
         print(s);
 
         if (s.length == State::size())
+        {
+            cout << "You win!\n";
             return 0;
+        }
     }
 }
 
