@@ -10,21 +10,26 @@ using std::cout;
 
 namespace Snake {
 
-std::string directionstring(direction dir) {
-    switch (dir) {
-    case direction::right:
-        return "right";
-    case direction::left:
-        return "left";
-    case direction::up:
-        return "up";
-    default:
-        return "down";
-    }
-};
-
 class Search {
 public:
+    static direction bestMove(const State &prev) {
+        float bestEval = -1.0f;
+        direction bestMove = direction::up;
+
+        for (direction dir : allDir) {
+            if (prev.canMove(dir) && prev.canExplore(dir)) {
+                State next = State(prev, dir);
+                float eval = evalMove(next);
+                if (bestEval == -1.0f || eval < bestEval) {
+                    bestEval = eval;
+                    bestMove = dir;
+                }
+            }
+        }
+
+        return bestMove;
+    }
+
     static int evalState(const State &state) {
         // success
         if (state.length == State::SIZE) {
@@ -40,32 +45,8 @@ public:
         return State::SPACE - state.time;
     }
 
-    static direction bestMove(const State &prev) {
-        float bestEval = -1.0f;
-        direction bestMove = direction::up;
-
-        for (direction dir : allDir) {
-            if (prev.canMove(dir) && prev.canExplore(dir)) {
-                State next = State(prev, dir);
-                float eval = evalMove(next);
-                cout << directionstring(dir) << ": " << eval << "\n";
-                if (bestEval == -1.0f || eval < bestEval) {
-                    bestEval = eval;
-                    bestMove = dir;
-                }
-            }
-        }
-
-        return bestMove;
-    }
-
     static float evalMove(const State &prev) {
-        if (prev.length == State::SIZE) {
-            return 0.0f;
-        }
-
-        float bestEval = (float)(State::SIZE * State::SIZE - prev.time +
-                                 State::SIZE * (State::SIZE + 1 - prev.length));
+        float bestEval = (float)(State::SPACE - prev.time + 1);
 
         for (direction dir : allDir) {
             if (prev.canMove(dir) && prev.canExplore(dir)) {
@@ -73,7 +54,7 @@ public:
                 float eval;
                 if (next.length > prev.length) {
                     if (next.length == State::SIZE) {
-                        eval = 0.0f;
+                        eval = (float)next.time;
                     } else {
                         eval = evalApple(next);
                     }
@@ -86,7 +67,7 @@ public:
             }
         }
 
-        return bestEval + 1.0f;
+        return bestEval - 1.0f;
     }
 
     // requires State with apple at 0
