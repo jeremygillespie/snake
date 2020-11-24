@@ -9,12 +9,15 @@ namespace Snake {
 
 enum class direction { right, left, up, down };
 
+const std::initializer_list<direction> allDir = {
+    direction::right, direction::left, direction::up, direction::down};
+
 class State {
 public:
     static constexpr int APPLE = -1;
     static constexpr int EMPTY = 0;
-    static constexpr int WIDTH = 6;
-    static constexpr int HEIGHT = 6;
+    static constexpr int WIDTH = 3;
+    static constexpr int HEIGHT = 4;
     static constexpr int SIZE = WIDTH * HEIGHT;
 
     // new state
@@ -30,11 +33,13 @@ public:
     // state with apple offset by n spaces
     State(const State &prev, int n);
 
-    int head, apple, length, time, timeSinceApple;
+    int head, apple, length, time;
 
     bool canMove(direction dir) const;
 
-    int &val(int p);
+    // true unless circuitous
+    bool canExplore(direction dir) const;
+
     int val(int p) const;
 
     int point(int p, direction dir) const;

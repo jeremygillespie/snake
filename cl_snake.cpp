@@ -3,6 +3,7 @@
 #include <random>
 #include <string>
 
+#include "MinMax.hpp"
 #include "State.hpp"
 
 using namespace std;
@@ -37,6 +38,10 @@ int main() {
             break;
         case 'd':
             dir = direction::right;
+            break;
+        case 'h':
+            cout << "\n";
+            dir = MinMax::bestMove(s);
             break;
         default:
             return 0;
