@@ -29,30 +29,41 @@ public:
     static CompactState nextApple(const CompactState &prev);
 
 private:
-    // bit 0, 1: direction
-    // bit 2: visited
-    // bit 3: occupied
-    using byte = uint_fast8_t;
-    byte board[SIZE + 1 / 2];
+    using chunk_t = uint_fast8_t;
+    static constexpr int B_POINT = 4; // bits per point
+    static constexpr int P_CHUNK =
+        sizeof(chunk_t) * 8 / B_POINT; // points per chunk
+    chunk_t board[(SIZE - 1) / P_CHUNK + 1];
 
-    byte point(int pos) const;
+    chunk_t point(int pos) const;
 
-    bool safe(byte p) const;
+    // set masked bits to true
+    void point(int pos, chunk_t mask);
+
+    // set masked bits to val
+    void point(int pos, chunk_t val, chunk_t mask);
+
+    bool canMove(chunk_t p) const;
 
     void firstApple();
 
     void moveTail();
 
-    static constexpr byte RIGHT = 0U;
-    static constexpr byte UP = 1U;
-    static constexpr byte LEFT = 2U;
-    static constexpr byte DOWN = 3U;
+    // bit 0: direction axis
+    // bit 1: direction sign
+    // bit 2: visited
+    // bit 3: occupied
+    static constexpr chunk_t RIGHT = 0b0000;
+    static constexpr chunk_t UP = 0b0001;
+    static constexpr chunk_t LEFT = 0b0010;
+    static constexpr chunk_t DOWN = 0b0011;
 
-    static constexpr byte DIRECTION_MASK = 3U; // bits 0, 1
-    static constexpr byte SAFETY_MASK = 3U << 2; // bits 2, 3
-    static constexpr byte VISITED_MASK = (1U << 3) + (1U << 7); // bits 3, 7
+    static constexpr chunk_t DIRECTION_MASK = 0b0011;
+    static constexpr chunk_t MOVABLE_MASK = 0b1100;
+    static constexpr chunk_t OCCUPIED_MASK = 0b0100;
+    static constexpr chunk_t VISITED_MASK = 0b1000;
 };
 
-} // namespace snake
+} // namespace Snake
 
 #endif
