@@ -23,8 +23,23 @@ std::string directionstring(direction dir) {
     }
 };
 
-class MinMax {
+class Search {
 public:
+    static int evalState(const State &state) {
+        // success
+        if (state.length == State::SIZE) {
+            return state.time;
+        }
+        for (direction dir : allDir) {
+            // neither success nor failure
+            if (state.canMove(dir) && state.canExplore(dir)) {
+                return State::SIZE * (State::SIZE - state.length) + state.time;
+            }
+        }
+        // failure
+        return State::SPACE - state.time;
+    }
+
     static direction bestMove(const State &prev) {
         float bestEval = -1.0f;
         direction bestMove = direction::up;
@@ -49,7 +64,8 @@ public:
             return 0.0f;
         }
 
-        float bestEval = 1000.0f;
+        float bestEval = (float)(State::SIZE * State::SIZE - prev.time +
+                                 State::SIZE * (State::SIZE + 1 - prev.length));
 
         for (direction dir : allDir) {
             if (prev.canMove(dir) && prev.canExplore(dir)) {

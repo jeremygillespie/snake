@@ -3,7 +3,7 @@
 #include <random>
 #include <string>
 
-#include "MinMax.hpp"
+#include "Search.hpp"
 #include "State.hpp"
 
 using namespace std;
@@ -41,7 +41,7 @@ int main() {
             break;
         case 'h':
             cout << "\n";
-            dir = MinMax::bestMove(s);
+            dir = Search::bestMove(s);
             break;
         default:
             return 0;

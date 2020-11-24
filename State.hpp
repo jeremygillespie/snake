@@ -19,6 +19,7 @@ public:
     static constexpr int WIDTH = 3;
     static constexpr int HEIGHT = 4;
     static constexpr int SIZE = WIDTH * HEIGHT;
+    static constexpr int SPACE = SIZE * SIZE;
 
     // new state
     State();

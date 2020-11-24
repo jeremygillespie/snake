@@ -7,8 +7,10 @@
   * uint[w] prev. head positions
   * uint[2*(n/32+1)] body directions
 * optimize space search
+  * time bad +t
+  * death bad +n*n (delaying death good)-t
+  * apples good -n
 * optimize heuristics
-  * cost of death = n - tSLA + n * (n - len) > worst case success 
 * add graphics
 * add stats
 * add monticarlo
