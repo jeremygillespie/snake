@@ -27,9 +27,10 @@ public:
     static constexpr chunk_type UP = 1U;
     static constexpr chunk_type LEFT = 2U;
     static constexpr chunk_type DOWN = 3U;
-    static constexpr chunk_type EMPTY = 4U;
-    static constexpr chunk_type HEAD = 5U;
-    static constexpr chunk_type APPLE = 6U;
+    static constexpr chunk_type HEAD = 4U;
+    static constexpr chunk_type APPLE = 5U;
+    static constexpr chunk_type EMPTY = 6U;
+    static constexpr chunk_type VISITED = 7U;
 
     size_type head, tail, apple, length;
 
@@ -39,12 +40,16 @@ public:
     // next apple constructor
     CompactState(const CompactState &prev);
 
-    bool canMove(chunk_type dir) const;
-
     // step constructor
     CompactState(const CompactState &prev, chunk_type dir);
 
-    chunk_type val(size_type pos) const;
+    bool canExplore(chunk_type dir) const;
+
+    // ignores visited
+    bool canMove(chunk_type dir) const;
+
+    // value at point
+    chunk_type value(size_type pos) const;
 
     CompactState &operator=(const CompactState &other) = default;
 
@@ -65,8 +70,6 @@ private:
 
     static size_type step(size_type pos, chunk_type dir);
 
-    bool movable(chunk_type p) const;
-
     void eatApple();
 
     void moveTail();
@@ -76,7 +79,7 @@ private:
     // bit 2: visited
     // bit 3: occupied
     static constexpr chunk_type DIRECTION_MASK = 0b0011;
-    static constexpr chunk_type MOVABLE_MASK = 0b1100;
+    static constexpr chunk_type EXPLORE_MASK = 0b1100;
     static constexpr chunk_type OCCUPIED_MASK = 0b0100;
     static constexpr chunk_type VISITED_MASK = 0b1000;
 };

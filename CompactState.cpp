@@ -18,10 +18,11 @@ CompactState::CompactState() :
     tail = x * HEIGHT;
 
     for (size_type pos = tail + 1; pos <= head; ++pos) {
-        point(pos, UP & OCCUPIED_MASK);
+        point(pos, UP | OCCUPIED_MASK);
     }
 
     point(head, VISITED_MASK);
+    point(tail, UP);
 
     eatApple();
 }
@@ -37,17 +38,42 @@ CompactState::CompactState(const CompactState &prev) :
     }
 }
 
-bool CompactState::canMove(chunk_type dir) const {
+bool CompactState::canExplore(chunk_type dir) const {
+    // clang-format off
     switch (dir) {
     case RIGHT:
-        return head + HEIGHT < SIZE && movable(point(step(head, dir)));
+        return head + HEIGHT < SIZE &&
+               (point(step(head, dir)) & EXPLORE_MASK) == 0;
     case UP:
-        return head % HEIGHT < HEIGHT - 1 && movable(point(step(head, dir)));
+        return head % HEIGHT < HEIGHT - 1 &&
+               (point(step(head, dir)) & EXPLORE_MASK) == 0;
     case LEFT:
-        return head > HEIGHT && movable(point(step(head, dir)));
+        return head >= HEIGHT &&
+                (point(step(head, dir)) & EXPLORE_MASK) == 0;
     default:
-        return head % HEIGHT != 0 && movable(point(step(head, dir)));
+        return head % HEIGHT != 0 &&
+               (point(step(head, dir)) & EXPLORE_MASK) == 0;
     }
+    // clang-format on
+}
+
+bool CompactState::canMove(chunk_type dir) const {
+    // clang-format off
+    switch (dir) {
+    case RIGHT:
+        return head + HEIGHT < SIZE &&
+               (point(step(head, dir)) & OCCUPIED_MASK) == 0;
+    case UP:
+        return head % HEIGHT < HEIGHT - 1 &&
+               (point(step(head, dir)) & OCCUPIED_MASK) == 0;
+    case LEFT:
+        return head > HEIGHT &&
+                (point(step(head, dir)) & OCCUPIED_MASK) == 0;
+    default:
+        return head % HEIGHT != 0 &&
+               (point(step(head, dir)) & OCCUPIED_MASK) == 0;
+    }
+    // clang-format on
 }
 
 CompactState::CompactState(const CompactState &prev, chunk_type dir) :
@@ -63,7 +89,7 @@ CompactState::CompactState(const CompactState &prev, chunk_type dir) :
     head = step(head, dir);
 
     // set head occupied and visited
-    point(head, OCCUPIED_MASK & VISITED_MASK);
+    point(head, OCCUPIED_MASK | VISITED_MASK);
 
     if (head == apple) {
         eatApple();
@@ -72,7 +98,7 @@ CompactState::CompactState(const CompactState &prev, chunk_type dir) :
     }
 }
 
-CompactState::chunk_type CompactState::val(size_type pos) const {
+CompactState::chunk_type CompactState::value(size_type pos) const {
     if (pos == head)
         return HEAD;
     if (pos == apple)
@@ -116,10 +142,6 @@ CompactState::size_type CompactState::step(size_type pos, chunk_type dir) {
     default:
         return pos - 1;
     }
-}
-
-bool CompactState::movable(chunk_type p) const {
-    return (p & MOVABLE_MASK) == 0;
 }
 
 void CompactState::eatApple() {

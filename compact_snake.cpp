@@ -18,7 +18,10 @@ int main() {
     CompactState s = CompactState();
 
     uniform_int_distribution<> dist(0, CompactState::SIZE - s.length - 1);
-    s = CompactState(s, dist(engine));
+
+    int n = dist(engine);
+    for (int i = 0; i < n; ++i)
+        s = CompactState(s);
 
     print(s);
 
@@ -60,7 +63,9 @@ int main() {
             if (l != s.length) {
                 uniform_int_distribution<> dist(0, CompactState::SIZE -
                                                        s.length - 1);
-                s = CompactState(s, dist(engine));
+                int n = dist(engine);
+                for (int i = 0; i < n; ++i)
+                    s = CompactState(s);
             }
         } else {
             cout << "You lose!\n";
@@ -83,7 +88,7 @@ void print(const CompactState &s) {
 
 void printX(const CompactState &s, CompactState::size_type y) {
     for (CompactState::size_type x = 0; x < CompactState::WIDTH; ++x) {
-        CompactState::chunk_type c = s.val(x * CompactState::HEIGHT + y);
+        CompactState::chunk_type c = s.value(x * CompactState::HEIGHT + y);
         switch (c) {
         case CompactState::HEAD:
             cout << "H";
