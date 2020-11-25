@@ -13,6 +13,9 @@ cl_snake: bin
 debug: bin
 	${CXX} ${CXXFLAGS} -g ${FILES} cl_snake.cpp -o bin/debug
 
+compact_snake: bin
+	${CXX} ${CXXFLAGS} -g CompactState.cpp compact_snake.cpp -o bin/compact_snake
+
 bin:
 	mkdir -p ./bin
 

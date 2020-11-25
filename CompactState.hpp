@@ -13,14 +13,25 @@ namespace Snake {
 
 class CompactState {
 public:
-    using chunk_t = uint_fast8_t;
+    using chunk_type = uint_fast8_t;
+    using size_type = uint_fast16_t;
 
-    static constexpr int WIDTH = SNAKE_STATE_BOARD_WIDTH;
-    static constexpr int HEIGHT = SNAKE_STATE_BOARD_HEIGHT;
-    static constexpr int SIZE = WIDTH * HEIGHT;
-    static constexpr int SPACE = SIZE * SIZE;
+    static constexpr size_type WIDTH = SNAKE_STATE_BOARD_WIDTH;
+    static constexpr size_type HEIGHT = SNAKE_STATE_BOARD_HEIGHT;
+    static constexpr size_type SIZE = WIDTH * HEIGHT;
+    static constexpr size_type SPACE = SIZE * SIZE;
 
-    int head, tail, apple, length;
+    // assert size fits in size_type
+
+    static constexpr chunk_type RIGHT = 0U;
+    static constexpr chunk_type UP = 1U;
+    static constexpr chunk_type LEFT = 2U;
+    static constexpr chunk_type DOWN = 3U;
+    static constexpr chunk_type EMPTY = 4U;
+    static constexpr chunk_type HEAD = 5U;
+    static constexpr chunk_type APPLE = 6U;
+
+    size_type head, tail, apple, length;
 
     // new game constructor
     CompactState();
@@ -28,29 +39,33 @@ public:
     // next apple constructor
     CompactState(const CompactState &prev);
 
-    bool canMove(chunk_t dir) const;
+    bool canMove(chunk_type dir) const;
 
     // step constructor
-    CompactState(const CompactState &prev, chunk_t dir);
+    CompactState(const CompactState &prev, chunk_type dir);
+
+    chunk_type val(size_type pos) const;
+
+    CompactState &operator=(const CompactState &other) = default;
 
 private:
-    static constexpr int B_POINT = 4; // bits per point
-    static constexpr int P_CHUNK =
-        sizeof(chunk_t) * 8 / B_POINT; // points per chunk
+    static constexpr size_type B_POINT = 4; // bits per point
+    static constexpr size_type P_CHUNK =    // point s per chunk
+        sizeof(chunk_type) * 8 / B_POINT;
 
-    std::array<chunk_t, (SIZE - 1) / P_CHUNK + 1> board;
+    std::array<chunk_type, (SIZE - 1) / P_CHUNK + 1> board;
 
-    chunk_t point(int pos) const;
+    chunk_type point(size_type pos) const;
 
     // set masked bits to true
-    void point(int pos, chunk_t mask);
+    void point(size_type pos, chunk_type mask);
 
     // set masked bits to val
-    void point(int pos, chunk_t mask, chunk_t val);
+    void point(size_type pos, chunk_type mask, chunk_type val);
 
-    static int step(int pos, chunk_t dir);
+    static size_type step(size_type pos, chunk_type dir);
 
-    bool movable(chunk_t p) const;
+    bool movable(chunk_type p) const;
 
     void eatApple();
 
@@ -60,15 +75,10 @@ private:
     // bit 1: direction sign
     // bit 2: visited
     // bit 3: occupied
-    static constexpr chunk_t RIGHT = 0b0000;
-    static constexpr chunk_t UP = 0b0001;
-    static constexpr chunk_t LEFT = 0b0010;
-    static constexpr chunk_t DOWN = 0b0011;
-
-    static constexpr chunk_t DIRECTION_MASK = 0b0011;
-    static constexpr chunk_t MOVABLE_MASK = 0b1100;
-    static constexpr chunk_t OCCUPIED_MASK = 0b0100;
-    static constexpr chunk_t VISITED_MASK = 0b1000;
+    static constexpr chunk_type DIRECTION_MASK = 0b0011;
+    static constexpr chunk_type MOVABLE_MASK = 0b1100;
+    static constexpr chunk_type OCCUPIED_MASK = 0b0100;
+    static constexpr chunk_type VISITED_MASK = 0b1000;
 };
 
 } // namespace Snake
