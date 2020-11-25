@@ -1,39 +1,44 @@
 #ifndef COMPACT_STATE_HPP
 #define COMPACT_STATE_HPP
 
+#ifndef SNAKE_STATE_BOARD_WIDTH
+#define SNAKE_STATE_BOARD_WIDTH 4
+#define SNAKE_STATE_BOARD_HEIGHT 4
+#endif
+
+#include <array>
 #include <cstdint>
 
 namespace Snake {
 
 class CompactState {
 public:
-    static constexpr int WIDTH = 8;
-    static constexpr int HEIGHT = 8;
+    using chunk_t = uint_fast8_t;
+
+    static constexpr int WIDTH = SNAKE_STATE_BOARD_WIDTH;
+    static constexpr int HEIGHT = SNAKE_STATE_BOARD_HEIGHT;
     static constexpr int SIZE = WIDTH * HEIGHT;
     static constexpr int SPACE = SIZE * SIZE;
 
     int head, tail, apple, length;
 
+    // new game constructor
     CompactState();
 
-    bool canRight() const;
-    bool canUp() const;
-    bool canLeft() const;
-    bool canDown() const;
+    // next apple constructor
+    CompactState(const CompactState &prev);
 
-    static CompactState right(const CompactState &prev);
-    static CompactState up(const CompactState &prev);
-    static CompactState left(const CompactState &prev);
-    static CompactState down(const CompactState &prev);
+    bool canMove(chunk_t dir) const;
 
-    static CompactState nextApple(const CompactState &prev);
+    // step constructor
+    CompactState(const CompactState &prev, chunk_t dir);
 
 private:
-    using chunk_t = uint_fast8_t;
     static constexpr int B_POINT = 4; // bits per point
     static constexpr int P_CHUNK =
         sizeof(chunk_t) * 8 / B_POINT; // points per chunk
-    chunk_t board[(SIZE - 1) / P_CHUNK + 1];
+
+    std::array<chunk_t, (SIZE - 1) / P_CHUNK + 1> board;
 
     chunk_t point(int pos) const;
 
@@ -41,11 +46,13 @@ private:
     void point(int pos, chunk_t mask);
 
     // set masked bits to val
-    void point(int pos, chunk_t val, chunk_t mask);
+    void point(int pos, chunk_t mask, chunk_t val);
 
-    bool canMove(chunk_t p) const;
+    static int step(int pos, chunk_t dir);
 
-    void firstApple();
+    bool movable(chunk_t p) const;
+
+    void eatApple();
 
     void moveTail();
 
