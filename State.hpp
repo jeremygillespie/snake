@@ -47,6 +47,8 @@ public:
     // value at point
     chunk_type value(int pos) const;
 
+    chunk_type lastMove() const;
+
     State &operator=(const State &other) = default;
 
 private:
@@ -166,6 +168,9 @@ State::State(const State &prev, chunk_type dir) :
     // set head occupied and visited
     point(head, OCCUPIED_MASK | VISITED_MASK);
 
+    // set last move direction
+    point(head, DIRECTION_MASK, dir);
+
     if (head == apple) {
         ++length;
         if (length != SIZE)
@@ -183,6 +188,10 @@ State::chunk_type State::value(int pos) const {
     if (pos != tail && (point(pos) & OCCUPIED_MASK) == 0U)
         return EMPTY;
     return point(pos) & DIRECTION_MASK;
+}
+
+State::chunk_type State::lastMove() const {
+    return point(head) & DIRECTION_MASK;
 }
 
 State::chunk_type State::point(int pos) const {
