@@ -8,7 +8,7 @@ CompactState::CompactState() :
         apple{},
         length{(HEIGHT + 1) / 2},
         board{} {
-    for (size_type pos = 0; pos < board.size(); ++pos) {
+    for (size_type pos = 0; pos < SIZE; ++pos) {
         board[pos] = 0;
     }
 
@@ -155,7 +155,7 @@ void CompactState::eatApple() {
     }
 
     apple = 0;
-    while (apple != tail && (point(apple) & OCCUPIED_MASK) != 0) {
+    while (apple == tail || (point(apple) & OCCUPIED_MASK) != 0) {
         ++apple;
     }
 }

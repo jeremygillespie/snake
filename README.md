@@ -31,6 +31,8 @@ Completeness: Success rate. min = 0%, max = optimal
 * <s>add DFS</s>
 * <s>create compact state</s>
 * create RBFS engine
+  * Path
+  * Pathfinder
 * create fast state
 * add stats
 * compare state types

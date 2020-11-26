@@ -7,12 +7,12 @@
 #endif
 
 #include <array>
-#include <cstdint>
 
 namespace Snake {
 
 class CompactState {
 public:
+    using byte_type = uint_fast8_t;
     using chunk_type = uint_fast8_t;
     using size_type = uint_fast16_t;
 
@@ -20,8 +20,6 @@ public:
     static constexpr size_type HEIGHT = SNAKE_STATE_BOARD_HEIGHT;
     static constexpr size_type SIZE = WIDTH * HEIGHT;
     static constexpr size_type SPACE = SIZE * SIZE;
-
-    // assert size fits in size_type
 
     static constexpr chunk_type RIGHT = 0U;
     static constexpr chunk_type UP = 1U;
