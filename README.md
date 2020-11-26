@@ -30,8 +30,8 @@ Completeness: Success rate. min = 0%, max = optimal
 * <s>create state</s>
 * <s>add DFS</s>
 * <s>create compact state</s>
-* create fast state
 * create RBFS engine
+* create fast state
 * add stats
 * compare state types
 
