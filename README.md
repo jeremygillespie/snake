@@ -19,6 +19,13 @@ cost of success = *T*
 
 cost of failure = longest possible run + 1
 
+## Measuring Performance
+Completeness: Success rate. min = 0%, max = optimal
+
+[Cost] Optimality: Steps taken. min = Hamiltonian path avg, max = optimal
+
+[Time] Complexity: Computation time. min = 1s, max = DFS (log scale)
+
 ## To Do
 * <s>create state</s>
 * <s>add DFS</s>
