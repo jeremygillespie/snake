@@ -1,3 +1,6 @@
+# Naive Branch
+### This branch contains a verbose version of depth-first search.
+
 ## Math
 width *W* * height *H* = size *N*
 
@@ -18,18 +21,3 @@ longest possible run = *T* + (*N* - 1) * *A* + *N* - *Ta* - 1
 cost of success = *T*
 
 cost of failure = longest possible run + 1
-
-## To Do
-* <s>create state</s>
-* <s>add DFS</s>
-* <s>create compact state</s>
-* create fast state
-* create RBFS engine
-* add stats
-* compare state types
-
-## Coming Soon
-* graphics
-* Monticarlo search
-* pathfinding
-* benchmarks

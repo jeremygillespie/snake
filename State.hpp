@@ -1,6 +1,11 @@
 #ifndef STATE_HPP
 #define STATE_HPP
 
+#ifndef SNAKE_STATE_BOARD_WIDTH
+#define SNAKE_STATE_BOARD_WIDTH 4
+#define SNAKE_STATE_BOARD_HEIGHT 4
+#endif
+
 #include <vector>
 
 using std::vector;
@@ -14,10 +19,10 @@ const std::initializer_list<direction> allDir = {
 
 class State {
 public:
+    static constexpr int WIDTH = SNAKE_STATE_BOARD_WIDTH;
+    static constexpr int HEIGHT = SNAKE_STATE_BOARD_HEIGHT;
     static constexpr int APPLE = -1;
     static constexpr int EMPTY = 0;
-    static constexpr int WIDTH = 3;
-    static constexpr int HEIGHT = 4;
     static constexpr int SIZE = WIDTH * HEIGHT;
     static constexpr int SPACE = SIZE * SIZE;
 
