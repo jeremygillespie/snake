@@ -1,63 +1,244 @@
-#ifndef STATE_HPP
-#define STATE_HPP
+#ifndef COMPACT_STATE_HPP
+#define COMPACT_STATE_HPP
 
-#include <vector>
+#ifndef SNAKE_STATE_BOARD_WIDTH
+#define SNAKE_STATE_BOARD_WIDTH 4
+#define SNAKE_STATE_BOARD_HEIGHT 4
+#endif
 
-using std::vector;
+#include <array>
 
 namespace Snake {
 
-enum class direction { right, left, up, down };
-
-const std::initializer_list<direction> allDir = {
-    direction::right, direction::left, direction::up, direction::down};
-
 class State {
 public:
-    static constexpr int APPLE = -1;
-    static constexpr int EMPTY = 0;
-    static constexpr int WIDTH = 3;
-    static constexpr int HEIGHT = 4;
+    using chunk_type = uint_fast8_t;
+
+    static constexpr int WIDTH = SNAKE_STATE_BOARD_WIDTH;
+    static constexpr int HEIGHT = SNAKE_STATE_BOARD_HEIGHT;
     static constexpr int SIZE = WIDTH * HEIGHT;
     static constexpr int SPACE = SIZE * SIZE;
 
-    // new state
+    static constexpr chunk_type RIGHT = 0U;
+    static constexpr chunk_type UP = 1U;
+    static constexpr chunk_type LEFT = 2U;
+    static constexpr chunk_type DOWN = 3U;
+    static constexpr chunk_type HEAD = 4U;
+    static constexpr chunk_type APPLE = 5U;
+    static constexpr chunk_type EMPTY = 6U;
+    static constexpr chunk_type VISITED = 7U;
+
+    int head, tail, apple, length;
+
+    // new game constructor
     State();
 
-    // state after move
-    State(const State &prev, direction dir);
-
-    // state with next possible apple
-    // equivalent to n=1
+    // next apple constructor
     State(const State &prev);
 
-    // state with apple offset by n spaces
-    State(const State &prev, int n);
+    // step constructor
+    State(const State &prev, chunk_type dir);
 
-    int head, apple, length, time;
+    bool canExplore(chunk_type dir) const;
 
-    bool canMove(direction dir) const;
+    // ignores visited
+    bool canMove(chunk_type dir) const;
 
-    // true unless circuitous
-    bool canExplore(direction dir) const;
-
-    int val(int p) const;
-
-    int point(int p, direction dir) const;
-    int point(direction dir) const;
-    int point(int x, int y) const;
-
-    int xCoord(int p) const;
-    int yCoord(int p) const;
+    // value at point
+    chunk_type value(int pos) const;
 
     State &operator=(const State &other) = default;
 
 private:
-    vector<int> board;
-    vector<bool> visited;
+    static constexpr int B_POINT = 4; // bits per point
+    static constexpr int P_CHUNK =    // point s per chunk
+        sizeof(chunk_type) * 8 / B_POINT;
 
-    void nextApple(int p);
+    static constexpr int CHUNKS = (SIZE - 1) / P_CHUNK + 1;
+
+    std::array<chunk_type, CHUNKS> board;
+
+    chunk_type point(int pos) const;
+
+    // set masked bits to true
+    void point(int pos, chunk_type mask);
+
+    // set masked bits to val
+    void point(int pos, chunk_type mask, chunk_type val);
+
+    static int step(int pos, chunk_type dir);
+
+    void eatApple();
+
+    void moveTail();
+
+    // bit 0: direction axis
+    // bit 1: direction sign
+    // bit 2: visited
+    // bit 3: occupied
+    static constexpr chunk_type DIRECTION_MASK = 0b0011;
+    static constexpr chunk_type EXPLORE_MASK = 0b1100;
+    static constexpr chunk_type OCCUPIED_MASK = 0b0100;
+    static constexpr chunk_type VISITED_MASK = 0b1000;
 };
+
+State::State() : head{}, tail{}, apple{}, length{(HEIGHT + 1) / 2}, board{} {
+    for (int pos = 0; pos < CHUNKS; ++pos) {
+        board[pos] = 0U;
+    }
+
+    int x = (WIDTH + 1) / 2 - 1;
+
+    head = x * HEIGHT + length - 1;
+    tail = x * HEIGHT;
+
+    for (int pos = tail + 1; pos <= head; ++pos) {
+        point(pos, UP | OCCUPIED_MASK);
+    }
+
+    point(head, VISITED_MASK);
+    point(tail, UP);
+
+    eatApple();
+}
+
+State::State(const State &prev) :
+        head{prev.head},
+        tail{prev.tail},
+        apple{prev.apple + 1},
+        length{prev.length},
+        board{prev.board} {
+    while (apple != tail && (point(apple) & OCCUPIED_MASK) != 0U) {
+        ++apple;
+    }
+}
+
+bool State::canExplore(chunk_type dir) const {
+    // clang-format off
+    switch (dir) {
+    case RIGHT:
+        return head + HEIGHT < SIZE &&
+               (point(step(head, dir)) & EXPLORE_MASK) == 0U;
+    case UP:
+        return head % HEIGHT < HEIGHT - 1 &&
+               (point(step(head, dir)) & EXPLORE_MASK) == 0U;
+    case LEFT:
+        return head >= HEIGHT &&
+                (point(step(head, dir)) & EXPLORE_MASK) == 0U;
+    default:
+        return head % HEIGHT != 0 &&
+               (point(step(head, dir)) & EXPLORE_MASK) == 0U;
+    }
+    // clang-format on
+}
+
+bool State::canMove(chunk_type dir) const {
+    // clang-format off
+    switch (dir) {
+    case RIGHT:
+        return head + HEIGHT < SIZE &&
+               (point(step(head, dir)) & OCCUPIED_MASK) == 0U;
+    case UP:
+        return head % HEIGHT < HEIGHT - 1 &&
+               (point(step(head, dir)) & OCCUPIED_MASK) == 0U;
+    case LEFT:
+        return head >= HEIGHT &&
+                (point(step(head, dir)) & OCCUPIED_MASK) == 0U;
+    default:
+        return head % HEIGHT != 0 &&
+               (point(step(head, dir)) & OCCUPIED_MASK) == 0U;
+    }
+    // clang-format on
+}
+
+State::State(const State &prev, chunk_type dir) :
+        head{prev.head},
+        tail{prev.tail},
+        apple{prev.apple},
+        length{prev.length},
+        board{prev.board} {
+    // set head direction
+    point(head, DIRECTION_MASK, dir);
+
+    // update head
+    head = step(head, dir);
+
+    // set head occupied and visited
+    point(head, OCCUPIED_MASK | VISITED_MASK);
+
+    if (head == apple) {
+        ++length;
+        if (length != SIZE)
+            eatApple();
+    } else {
+        moveTail();
+    }
+}
+
+State::chunk_type State::value(int pos) const {
+    if (pos == head)
+        return HEAD;
+    if (pos == apple)
+        return APPLE;
+    if (pos != tail && (point(pos) & OCCUPIED_MASK) == 0U)
+        return EMPTY;
+    return point(pos) & DIRECTION_MASK;
+}
+
+State::chunk_type State::point(int pos) const {
+    return board[pos / P_CHUNK] >> pos % P_CHUNK * B_POINT;
+}
+
+void State::point(int pos, chunk_type mask) {
+    // clang-format off
+    
+    board[pos / P_CHUNK] = board[pos / P_CHUNK]
+        | mask << pos % P_CHUNK * B_POINT;
+
+    // clang-format on
+}
+
+void State::point(int pos, chunk_type mask, chunk_type val) {
+    // clang-format off
+
+    board[pos / P_CHUNK] = (board[pos / P_CHUNK]
+        & ~(mask << pos % P_CHUNK * B_POINT))
+        | (val << pos % P_CHUNK * B_POINT);
+
+    // clang-format on
+}
+
+int State::step(int pos, chunk_type dir) {
+    switch (dir) {
+    case RIGHT:
+        return pos + HEIGHT;
+    case UP:
+        return pos + 1;
+    case LEFT:
+        return pos - HEIGHT;
+    default:
+        return pos - 1;
+    }
+}
+
+void State::eatApple() {
+    // reset visited
+    for (int pos = 0; pos < SIZE; ++pos) {
+        if (pos != head) {
+            point(pos, VISITED_MASK, 0U);
+        }
+    }
+
+    apple = 0;
+    while (apple == tail || (point(apple) & OCCUPIED_MASK) != 0U) {
+        ++apple;
+    }
+}
+
+void State::moveTail() {
+    tail = step(tail, point(tail) & DIRECTION_MASK);
+    point(tail, OCCUPIED_MASK, 0U);
+}
 
 } // namespace Snake
 

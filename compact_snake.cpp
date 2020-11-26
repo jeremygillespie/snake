@@ -2,12 +2,12 @@
 #include <iostream>
 #include <random>
 
-#include "CompactState.hpp"
+#include "State.hpp"
 
 using namespace std;
 using namespace Snake;
 
-void print(const CompactState &s);
+void print(const State &s);
 
 int gameTime = 0;
 
@@ -15,32 +15,32 @@ int main() {
     int seed = chrono::system_clock::now().time_since_epoch().count();
     default_random_engine engine(seed);
 
-    CompactState s = CompactState();
+    State s = State();
 
-    uniform_int_distribution<> dist(0, CompactState::SIZE - s.length - 1);
+    uniform_int_distribution<> dist(0, State::SIZE - s.length - 1);
 
     int n = dist(engine);
     for (int i = 0; i < n; ++i)
-        s = CompactState(s);
+        s = State(s);
 
     print(s);
 
     for (char c;;) {
         cin >> c;
-        CompactState::chunk_type dir;
+        State::chunk_type dir;
 
         switch (c) {
         case 'w':
-            dir = CompactState::UP;
+            dir = State::UP;
             break;
         case 's':
-            dir = CompactState::DOWN;
+            dir = State::DOWN;
             break;
         case 'a':
-            dir = CompactState::LEFT;
+            dir = State::LEFT;
             break;
         case 'd':
-            dir = CompactState::RIGHT;
+            dir = State::RIGHT;
             break;
         // case 'h':
         //     cout << "\n";
@@ -53,21 +53,20 @@ int main() {
         if (s.canMove(dir)) {
             ++gameTime;
 
-            CompactState::size_type l = s.length;
-            s = CompactState(s, dir);
+            int l = s.length;
+            s = State(s, dir);
 
-            if (s.length == CompactState::SIZE) {
+            if (s.length == State::SIZE) {
                 print(s);
                 cout << "You win!\n";
                 return 0;
             }
 
             if (l != s.length) {
-                uniform_int_distribution<> dist(0, CompactState::SIZE -
-                                                       s.length - 1);
+                uniform_int_distribution<> dist(0, State::SIZE - s.length - 1);
                 int n = dist(engine);
                 for (int i = 0; i < n; ++i)
-                    s = CompactState(s);
+                    s = State(s);
             }
         } else {
             cout << "You lose!\n";
@@ -78,36 +77,36 @@ int main() {
     }
 }
 
-void printX(const CompactState &s, CompactState::size_type y);
+void printX(const State &s, int y);
 
-void print(const CompactState &s) {
-    for (CompactState::size_type y = CompactState::HEIGHT - 1; y > 0; --y) {
+void print(const State &s) {
+    for (int y = State::HEIGHT - 1; y > 0; --y) {
         printX(s, y);
     }
     printX(s, 0);
     cout << "Time: " << gameTime << "\n";
 };
 
-void printX(const CompactState &s, CompactState::size_type y) {
-    for (CompactState::size_type x = 0; x < CompactState::WIDTH; ++x) {
-        CompactState::chunk_type c = s.value(x * CompactState::HEIGHT + y);
+void printX(const State &s, int y) {
+    for (int x = 0; x < State::WIDTH; ++x) {
+        State::chunk_type c = s.value(x * State::HEIGHT + y);
         switch (c) {
-        case CompactState::HEAD:
+        case State::HEAD:
             cout << "H";
             break;
-        case CompactState::APPLE:
+        case State::APPLE:
             cout << "@";
             break;
-        case CompactState::UP:
+        case State::UP:
             cout << "A";
             break;
-        case CompactState::DOWN:
+        case State::DOWN:
             cout << "V";
             break;
-        case CompactState::LEFT:
+        case State::LEFT:
             cout << "<";
             break;
-        case CompactState::RIGHT:
+        case State::RIGHT:
             cout << ">";
             break;
         default:
