@@ -67,7 +67,7 @@ bool CompactState::canMove(chunk_type dir) const {
         return head % HEIGHT < HEIGHT - 1 &&
                (point(step(head, dir)) & OCCUPIED_MASK) == 0;
     case LEFT:
-        return head > HEIGHT &&
+        return head >= HEIGHT &&
                 (point(step(head, dir)) & OCCUPIED_MASK) == 0;
     default:
         return head % HEIGHT != 0 &&
@@ -92,7 +92,9 @@ CompactState::CompactState(const CompactState &prev, chunk_type dir) :
     point(head, OCCUPIED_MASK | VISITED_MASK);
 
     if (head == apple) {
-        eatApple();
+        ++length;
+        if (length != SIZE)
+            eatApple();
     } else {
         moveTail();
     }
@@ -145,8 +147,6 @@ CompactState::size_type CompactState::step(size_type pos, chunk_type dir) {
 }
 
 void CompactState::eatApple() {
-    ++length;
-
     // reset visited
     for (size_type pos = 0; pos < SIZE; ++pos) {
         if (pos != head) {

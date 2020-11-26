@@ -22,12 +22,14 @@ cost of failure = longest possible run + 1
 ## To Do
 * <s>create state</s>
 * <s>add DFS</s>
-* add RBFS
-* create benchmarks
-* add pathfinding
-* add monticarlo
-* <s>optimize state</s>
-* optimize RBFS
-* optimize pathfinding
-* add graphics
+* <s>create compact state</s>
+* create fast state
+* create RBFS engine
 * add stats
+* compare state types
+
+## Coming Soon
+* graphics
+* Monticarlo search
+* pathfinding
+* benchmarks

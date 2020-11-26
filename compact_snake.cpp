@@ -51,6 +51,8 @@ int main() {
         }
 
         if (s.canMove(dir)) {
+            ++gameTime;
+
             CompactState::size_type l = s.length;
             s = CompactState(s, dir);
 
