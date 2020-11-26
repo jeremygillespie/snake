@@ -49,6 +49,8 @@ public:
 
     chunk_type lastMove() const;
 
+    bool operator==(const State &other) const;
+
     State &operator=(const State &other) = default;
 
 private:
@@ -56,9 +58,9 @@ private:
     static constexpr int P_CHUNK =    // point s per chunk
         sizeof(chunk_type) * 8 / B_POINT;
 
-    static constexpr int CHUNKS = (SIZE - 1) / P_CHUNK + 1;
+    static constexpr int BOARD_SIZE = (SIZE - 1) / P_CHUNK + 1;
 
-    std::array<chunk_type, CHUNKS> board;
+    std::array<chunk_type, BOARD_SIZE> board;
 
     chunk_type point(int pos) const;
 
@@ -85,7 +87,7 @@ private:
 };
 
 State::State() : head{}, tail{}, apple{}, length{(HEIGHT + 1) / 2}, board{} {
-    for (int pos = 0; pos < CHUNKS; ++pos) {
+    for (int pos = 0; pos < BOARD_SIZE; ++pos) {
         board[pos] = 0U;
     }
 
@@ -192,6 +194,18 @@ State::chunk_type State::value(int pos) const {
 
 State::chunk_type State::lastMove() const {
     return point(head) & DIRECTION_MASK;
+}
+
+bool State::operator==(const State &other) const {
+    if(head != other.head ||
+        tail != other.tail ||
+        apple != other.apple ||
+        length != other.length)
+        return false;
+    for(int i=0; i<BOARD_SIZE; ++i)
+        if(board[i] != other.board[i])
+            return false;
+    return true;
 }
 
 State::chunk_type State::point(int pos) const {
