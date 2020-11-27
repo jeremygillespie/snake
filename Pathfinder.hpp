@@ -18,11 +18,9 @@ public:
     Pathfinder(const State &start);
 
     // search until found
-    virtual bool search() = 0;
+    virtual bool search(Path &path) = 0;
 
-    virtual bool search(int attempts) = 0;
-
-    Path path;
+    virtual bool search(Path &path, int attempts) = 0;
 
 protected:
     State start;
@@ -30,26 +28,42 @@ protected:
 
 class DepthFirst : public Pathfinder {
 public:
-    DepthFirst(const State &start) : Pathfinder{start} {}
+    DepthFirst(const State &start) : Pathfinder{start}, depth{0} {
+        states[0] = start;
+        lastMove[0] = 0U;
+    }
 
-    bool search() {
-        while (true) {
+    bool search(Path &path) {
+        for(;;) {
+            for(State::chunk_type dir = lastMove[depth]; dir <= 3U; ++dir)
+            {
+                if(states[depth].canExplore(dir)) {
+                    // successor state
+                    lastMove[depth] = dir;
+                    states[depth + 1] = State(states[depth], dir);
+                    lastMove[depth + 1] = 0U;
+                    ++depth;
 
-            //  if states[depth].hasSuccessor()
-            //      states[depth + 1] = states[depth].successor
-            //      ++depth
-            //  else
-            //      --depth
+                    // success
+                    if (states[depth].head == states[depth].apple) {
+                        path = {start, states[depth],
+                                std::vector<State::chunk_type>(depth)};
+                        for (int i = 0; i < depth; ++i) {
+                            // set path.route[i] according to states[i]
+                        }
+                        return true;
+                    }
 
-            if (depth < 0) {
-                return false;
-            } else if (states[depth].head == states[depth].apple) {
-                path = {start, states[depth],
-                        std::vector<State::chunk_type>(depth)};
-                for (int i = 0; i < depth; ++i) {
-                    // set path.route[i] according to states[i]
+                    break;
                 }
-                return true;
+                // no more successors
+                if(dir == 3U) {
+                    --depth;
+
+                    // failure
+                    if (depth < 0)
+                        return false;
+                }
             }
         }
     }
@@ -57,6 +71,7 @@ public:
 private:
     int depth;
     std::array<State, State::SIZE - 1> states;
+    std::array<State::chunk_type, State::SIZE - 1> lastMove;
 };
 
 } // namespace Snake
