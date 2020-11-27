@@ -10,7 +10,7 @@ namespace Snake {
 struct Path {
 public:
     State start, end;
-    std::vector<State::chunk_type> route;
+    std::vector<State::chunk_type> moves;
 };
 
 class Pathfinder {
@@ -21,48 +21,45 @@ public:
     virtual bool search(Path &path) = 0;
 
     virtual bool search(Path &path, int attempts) = 0;
-
-protected:
-    State start;
 };
 
 class DepthFirst : public Pathfinder {
 public:
     DepthFirst(const State &start) : Pathfinder{start}, depth{0} {
         states[0] = start;
-        lastMove[0] = 0U;
+        moves[0] = 0U;
     }
 
     bool search(Path &path) {
-        for(;;) {
-            for(State::chunk_type dir = lastMove[depth]; dir <= 3U; ++dir)
-            {
-                if(states[depth].canExplore(dir)) {
-                    // successor state
-                    lastMove[depth] = dir;
-                    states[depth + 1] = State(states[depth], dir);
-                    lastMove[depth + 1] = 0U;
-                    ++depth;
+        for (;;) {
+            if (states[depth].canExplore(moves[depth])) {
+                // successor state
+                states[depth + 1] = State(states[depth], moves[depth]);
+                ++depth;
 
-                    // success
-                    if (states[depth].head == states[depth].apple) {
-                        path = {start, states[depth],
-                                std::vector<State::chunk_type>(depth)};
-                        for (int i = 0; i < depth; ++i) {
-                            // set path.route[i] according to states[i]
-                        }
-                        return true;
+                // success
+                if (states[depth].head == states[depth].apple) {
+                    path = {states[0], states[depth],
+                            std::vector<State::chunk_type>(depth)};
+                    for (int i = 0; i < depth; ++i) {
+                        path.moves[i] = moves[i];
                     }
-
-                    break;
+                    return true;
                 }
+
+                moves[depth] = 0U;
+            } else {
+                ++moves[depth];
                 // no more successors
-                if(dir == 3U) {
+                if (moves[depth] == 4U) {
                     --depth;
 
                     // failure
-                    if (depth < 0)
+                    if (depth < 0) {
                         return false;
+                    }
+
+                    ++moves[depth];
                 }
             }
         }
@@ -71,7 +68,7 @@ public:
 private:
     int depth;
     std::array<State, State::SIZE - 1> states;
-    std::array<State::chunk_type, State::SIZE - 1> lastMove;
+    std::array<State::chunk_type, State::SIZE - 1> moves;
 };
 
 } // namespace Snake
