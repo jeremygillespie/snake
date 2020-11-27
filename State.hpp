@@ -1,9 +1,11 @@
 #ifndef COMPACT_STATE_HPP
 #define COMPACT_STATE_HPP
 
-#ifndef SNAKE_STATE_BOARD_WIDTH
+#if !defined(SNAKE_STATE_BOARD_WIDTH) || !defined(SNAKE_STATE_BOARD_HEIGHT) || \
+    !defined(SNAKE_STATE_START_LENGTH)
 #define SNAKE_STATE_BOARD_WIDTH 4
 #define SNAKE_STATE_BOARD_HEIGHT 4
+#define SNAKE_STATE_START_LENGTH 2
 #endif
 
 #include <array>
@@ -12,12 +14,17 @@ namespace Snake {
 
 class State {
 public:
-    using chunk_type = uint_fast8_t;
+    using chunk_type = uint32_t;
 
     static constexpr int WIDTH = SNAKE_STATE_BOARD_WIDTH;
     static constexpr int HEIGHT = SNAKE_STATE_BOARD_HEIGHT;
+    static constexpr int START_LENGTH = SNAKE_STATE_START_LENGTH;
+
+    static_assert(START_LENGTH <= HEIGHT + 1 / 2, "start length too long");
+
     static constexpr int SIZE = WIDTH * HEIGHT;
     static constexpr int SPACE = SIZE * SIZE;
+    static constexpr int DEPTH = SIZE - START_LENGTH;
 
     static constexpr chunk_type RIGHT = 0U;
     static constexpr chunk_type UP = 1U;
@@ -39,9 +46,10 @@ public:
     // step constructor
     State(const State &prev, chunk_type dir);
 
+    // exclude occupied, visited
     bool canExplore(chunk_type dir) const;
 
-    // ignores visited
+    // exclude occupied, allow visited
     bool canMove(chunk_type dir) const;
 
     // value at point
@@ -53,8 +61,10 @@ public:
 
 private:
     static constexpr int B_POINT = 4; // bits per point
-    static constexpr int P_CHUNK =    // point s per chunk
-        sizeof(chunk_type) * 8 / B_POINT;
+    static constexpr int P_CHUNK = 1; // points per chunk
+
+    static_assert(B_POINT * P_CHUNK <= 8 * sizeof(chunk_type),
+                  "chunk does not fit in chunk_type");
 
     static constexpr int BOARD_SIZE = (SIZE - 1) / P_CHUNK + 1;
 
@@ -84,7 +94,7 @@ private:
     static constexpr chunk_type VISITED_MASK = 0b1000;
 };
 
-State::State() : head{}, tail{}, apple{}, length{(HEIGHT + 1) / 2}, board{} {
+State::State() : head{}, tail{}, apple{}, length{START_LENGTH}, board{} {
     for (int pos = 0; pos < BOARD_SIZE; ++pos) {
         board[pos] = 0U;
     }
@@ -110,8 +120,8 @@ State::State(const State &prev) :
         apple{prev.apple + 1},
         length{prev.length},
         board{prev.board} {
-    while (apple != tail && (point(apple) & OCCUPIED_MASK) != 0U) {
-        ++apple;
+    while (apple == tail || (point(apple) & OCCUPIED_MASK) != 0U) {
+        apple = (apple + 1) % SIZE;
     }
 }
 
@@ -188,13 +198,11 @@ State::chunk_type State::value(int pos) const {
 }
 
 bool State::operator==(const State &other) const {
-    if(head != other.head ||
-        tail != other.tail ||
-        apple != other.apple ||
+    if (head != other.head || tail != other.tail || apple != other.apple ||
         length != other.length)
         return false;
-    for(int i=0; i<BOARD_SIZE; ++i)
-        if(board[i] != other.board[i])
+    for (int i = 0; i < BOARD_SIZE; ++i)
+        if (board[i] != other.board[i])
             return false;
     return true;
 }

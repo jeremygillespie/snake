@@ -13,19 +13,11 @@ public:
     std::vector<State::chunk_type> moves;
 };
 
-class Pathfinder {
+namespace Pathfinder {
+
+class DepthFirst {
 public:
-    Pathfinder(const State &start);
-
-    // search until found
-    virtual bool search(Path &path) = 0;
-
-    virtual bool search(Path &path, int attempts) = 0;
-};
-
-class DepthFirst : public Pathfinder {
-public:
-    DepthFirst(const State &start) : Pathfinder{start}, depth{0} {
+    DepthFirst(const State &start) : depth{0} {
         states[0] = start;
         moves[0] = 0U;
     }
@@ -70,6 +62,8 @@ private:
     std::array<State, State::SIZE - 1> states;
     std::array<State::chunk_type, State::SIZE - 1> moves;
 };
+
+} // namespace Pathfinder
 
 } // namespace Snake
 
