@@ -36,16 +36,17 @@ Completeness: Success rate. min = 0%, max = optimal
 * <s>create state</s>
 * <s>add DFS</s>
 * <s>create compact state</s>
-* create RBFS engine
+* create exhaustive engine
   * <s>Path</s>
   * <s>DFS</s>
-  * Safety check
-* create fast state
-* add stats
+* create faster engine
+  * safety check
 * compare state types
+  * time complexity timer
 
 ## Coming Soon
 * graphics
+* stats
 * Monticarlo search
 * pathfinding
 * benchmarks
