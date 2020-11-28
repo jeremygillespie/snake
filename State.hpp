@@ -49,8 +49,10 @@ public:
     // exclude occupied, require visited
     bool canLoop(chunk_type dir) const;
 
+    // successor state after move
     static State move(const State &prev, chunk_type dir);
 
+    // incrememnt apple location
     static State nextApple(const State &prev);
 
     // sets body vertices visited
