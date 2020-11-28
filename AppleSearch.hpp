@@ -1,11 +1,13 @@
-#ifndef PATHFINDER_HPP
-#define PATHFINDER_HPP
+#ifndef APPLE_SEARCH_HPP
+#define APPLE_SEARCH_HPP
 
 #include <vector>
 
 #include "State.hpp"
 
 namespace Snake {
+
+namespace AppleSearch {
 
 struct Path {
 public:
@@ -16,13 +18,13 @@ public:
 class Exhaustive {
 public:
     // guaranteed complete
-    virtual bool search(Path &path) = 0;
+    virtual bool operator()(Path &result) = 0;
 };
 
 class Partial {
 public:
     // guaranteed complexity bound
-    virtual bool search(Path &path, int attempts) = 0;
+    virtual bool operator()(Path &result, int attempts) = 0;
 };
 
 class DepthFirst : public Exhaustive {
@@ -32,7 +34,7 @@ public:
         moves[0] = 0U;
     }
 
-    bool search(Path &path) {
+    bool operator()(Path &result) {
         for (;;) {
             if (states[depth].canExplore(moves[depth])) {
                 // successor state
@@ -41,10 +43,10 @@ public:
 
                 // success
                 if (states[depth].head == states[depth].apple) {
-                    path = {states[0], states[depth],
-                            std::vector<State::chunk_type>(depth)};
+                    result = {states[0], states[depth],
+                              std::vector<State::chunk_type>(depth)};
                     for (int i = 0; i < depth; ++i) {
-                        path.moves[i] = moves[i];
+                        result.moves[i] = moves[i];
                     }
                     return true;
                 }
@@ -72,6 +74,8 @@ private:
     std::array<State, State::SIZE - 1> states;
     std::array<State::chunk_type, State::SIZE - 1> moves;
 };
+
+} // namespace AppleSearch
 
 } // namespace Snake
 

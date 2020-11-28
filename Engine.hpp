@@ -1,13 +1,14 @@
 #ifndef ENGINE_HPP
 #define ENGINE_HPP
 
-#include "Pathfinder.hpp"
+#include "AppleSearch.hpp"
+#include "SafetySearch.hpp"
 
 namespace Snake {
 
 class Engine {
 public:
-    virtual Path getPath(int nextApple) = 0;
+    virtual AppleSearch::Path getPath(int nextApple) = 0;
 };
 
 class Exhaustive : public Engine {
@@ -16,9 +17,9 @@ public:
         // TODO
     };
 
-    Path getPath(int nextApple) {
+    AppleSearch::Path getPath(int nextApple) {
         // TODO
-        return Path{};
+        return AppleSearch::Path{};
     }
 };
 

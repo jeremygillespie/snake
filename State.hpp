@@ -40,20 +40,23 @@ public:
     // new game constructor
     State();
 
-    // exclude occupied, visited
-    bool canExplore(chunk_type dir) const;
-
     // exclude occupied, allow visited
     bool canMove(chunk_type dir) const;
+
+    // exclude occupied, exclude visited
+    bool canExplore(chunk_type dir) const;
+
+    // exclude occupied, require visited
+    bool canLoop(chunk_type dir) const;
 
     static State move(const State &prev, chunk_type dir);
 
     static State nextApple(const State &prev);
 
-    // sets body points visited
+    // sets body vertices visited
     static State safety(const State &prev);
 
-    // value at point
+    // value at vertex
     chunk_type value(int pos) const;
 
     bool operator==(const State &other) const;
@@ -63,23 +66,23 @@ public:
     State &operator=(const State &other) = default;
 
 private:
-    static constexpr int B_POINT = 4; // bits per point
+    static constexpr int B_VERT = 4;  // bits per point
     static constexpr int P_CHUNK = 1; // points per chunk
 
-    static_assert(B_POINT * P_CHUNK <= 8 * sizeof(chunk_type),
+    static_assert(B_VERT * P_CHUNK <= 8 * sizeof(chunk_type),
                   "chunk does not fit in chunk_type");
 
-    static constexpr int BOARD_SIZE = (SIZE - 1) / P_CHUNK + 1;
+    static constexpr int VERTICES_SIZE = (SIZE - 1) / P_CHUNK + 1;
 
-    std::array<chunk_type, BOARD_SIZE> board;
+    std::array<chunk_type, VERTICES_SIZE> vertices;
 
-    chunk_type point(int pos) const;
+    chunk_type vertex(int pos) const;
 
     // set masked bits to true
-    void point(int pos, chunk_type mask);
+    void vertex(int pos, chunk_type mask);
 
     // set masked bits to val
-    void point(int pos, chunk_type mask, chunk_type val);
+    void vertex(int pos, chunk_type mask, chunk_type val);
 
     static int step(int pos, chunk_type dir);
 
@@ -97,9 +100,9 @@ private:
     static constexpr chunk_type VISITED_MASK = 0b1000;
 };
 
-State::State() : head{}, tail{}, apple{}, length{START_LENGTH}, board{} {
-    for (int pos = 0; pos < BOARD_SIZE; ++pos) {
-        board[pos] = 0U;
+State::State() : head{}, tail{}, apple{}, length{START_LENGTH}, vertices{} {
+    for (int pos = 0; pos < VERTICES_SIZE; ++pos) {
+        vertices[pos] = 0U;
     }
 
     int x = (WIDTH + 1) / 2 - 1;
@@ -108,32 +111,13 @@ State::State() : head{}, tail{}, apple{}, length{START_LENGTH}, board{} {
     tail = x * HEIGHT;
 
     for (int pos = tail + 1; pos < head; ++pos) {
-        point(pos, UP | OCCUPIED_MASK);
+        vertex(pos, UP | OCCUPIED_MASK);
     }
 
-    point(head, VISITED_MASK | OCCUPIED_MASK);
-    point(tail, UP);
+    vertex(head, VISITED_MASK | OCCUPIED_MASK);
+    vertex(tail, UP);
 
     eatApple();
-}
-
-bool State::canExplore(chunk_type dir) const {
-    // clang-format off
-    switch (dir) {
-    case RIGHT:
-        return head + HEIGHT < SIZE &&
-               (point(step(head, dir)) & EXPLORE_MASK) == 0U;
-    case UP:
-        return head % HEIGHT < HEIGHT - 1 &&
-               (point(step(head, dir)) & EXPLORE_MASK) == 0U;
-    case LEFT:
-        return head >= HEIGHT &&
-                (point(step(head, dir)) & EXPLORE_MASK) == 0U;
-    default:
-        return head % HEIGHT != 0 &&
-               (point(step(head, dir)) & EXPLORE_MASK) == 0U;
-    }
-    // clang-format on
 }
 
 bool State::canMove(chunk_type dir) const {
@@ -141,16 +125,54 @@ bool State::canMove(chunk_type dir) const {
     switch (dir) {
     case RIGHT:
         return head + HEIGHT < SIZE &&
-               (point(step(head, dir)) & OCCUPIED_MASK) == 0U;
+               (vertex(step(head, dir)) & OCCUPIED_MASK) == 0U;
     case UP:
         return head % HEIGHT < HEIGHT - 1 &&
-               (point(step(head, dir)) & OCCUPIED_MASK) == 0U;
+               (vertex(step(head, dir)) & OCCUPIED_MASK) == 0U;
     case LEFT:
         return head >= HEIGHT &&
-                (point(step(head, dir)) & OCCUPIED_MASK) == 0U;
+                (vertex(step(head, dir)) & OCCUPIED_MASK) == 0U;
     default:
         return head % HEIGHT != 0 &&
-               (point(step(head, dir)) & OCCUPIED_MASK) == 0U;
+               (vertex(step(head, dir)) & OCCUPIED_MASK) == 0U;
+    }
+    // clang-format on
+}
+
+bool State::canExplore(chunk_type dir) const {
+    // clang-format off
+    switch (dir) {
+    case RIGHT:
+        return head + HEIGHT < SIZE &&
+               (vertex(step(head, dir)) & EXPLORE_MASK) == 0U;
+    case UP:
+        return head % HEIGHT < HEIGHT - 1 &&
+               (vertex(step(head, dir)) & EXPLORE_MASK) == 0U;
+    case LEFT:
+        return head >= HEIGHT &&
+                (vertex(step(head, dir)) & EXPLORE_MASK) == 0U;
+    default:
+        return head % HEIGHT != 0 &&
+               (vertex(step(head, dir)) & EXPLORE_MASK) == 0U;
+    }
+    // clang-format on
+}
+
+bool State::canLoop(chunk_type dir) const {
+    // clang-format off
+    switch (dir) {
+    case RIGHT:
+        return head + HEIGHT < SIZE &&
+               (vertex(step(head, dir)) & EXPLORE_MASK) == VISITED_MASK;
+    case UP:
+        return head % HEIGHT < HEIGHT - 1 &&
+               (vertex(step(head, dir)) & EXPLORE_MASK) == VISITED_MASK;
+    case LEFT:
+        return head >= HEIGHT &&
+                (vertex(step(head, dir)) & EXPLORE_MASK) == VISITED_MASK;
+    default:
+        return head % HEIGHT != 0 &&
+               (vertex(step(head, dir)) & EXPLORE_MASK) == VISITED_MASK;
     }
     // clang-format on
 }
@@ -158,13 +180,13 @@ bool State::canMove(chunk_type dir) const {
 State State::move(const State &prev, chunk_type dir) {
     State next{prev};
     // set head direction
-    next.point(next.head, DIRECTION_MASK, dir);
+    next.vertex(next.head, DIRECTION_MASK, dir);
 
     // update head
     next.head = step(next.head, dir);
 
     // set head occupied and visited
-    next.point(next.head, OCCUPIED_MASK | VISITED_MASK);
+    next.vertex(next.head, OCCUPIED_MASK | VISITED_MASK);
 
     if (next.head == next.apple) {
         ++next.length;
@@ -183,7 +205,7 @@ State State::nextApple(const State &prev) {
 
     ++next.apple;
     while (next.apple == next.tail ||
-           (next.point(next.apple) & OCCUPIED_MASK) != 0U) {
+           (next.vertex(next.apple) & OCCUPIED_MASK) != 0U) {
         next.apple = (next.apple + 1) % SIZE;
     }
 
@@ -194,8 +216,8 @@ State State::safety(const State &prev) {
     State next{prev};
 
     for (int pos = 0; pos < SIZE; ++pos) {
-        if ((next.point(pos) & OCCUPIED_MASK) != 0U) {
-            next.point(pos, VISITED_MASK);
+        if ((next.vertex(pos) & OCCUPIED_MASK) != 0U) {
+            next.vertex(pos, VISITED_MASK);
         }
     }
 
@@ -207,40 +229,40 @@ State::chunk_type State::value(int pos) const {
         return HEAD;
     if (pos == apple)
         return APPLE;
-    if (pos != tail && (point(pos) & OCCUPIED_MASK) == 0U)
+    if (pos != tail && (vertex(pos) & OCCUPIED_MASK) == 0U)
         return EMPTY;
-    return point(pos) & DIRECTION_MASK;
+    return vertex(pos) & DIRECTION_MASK;
 }
 
 bool State::operator==(const State &other) const {
     if (head != other.head || tail != other.tail || apple != other.apple ||
         length != other.length)
         return false;
-    for (int i = 0; i < BOARD_SIZE; ++i)
-        if (board[i] != other.board[i])
+    for (int i = 0; i < VERTICES_SIZE; ++i)
+        if (vertices[i] != other.vertices[i])
             return false;
     return true;
 }
 
-State::chunk_type State::point(int pos) const {
-    return board[pos / P_CHUNK] >> pos % P_CHUNK * B_POINT;
+State::chunk_type State::vertex(int pos) const {
+    return vertices[pos / P_CHUNK] >> pos % P_CHUNK * B_VERT;
 }
 
-void State::point(int pos, chunk_type mask) {
+void State::vertex(int pos, chunk_type mask) {
     // clang-format off
     
-    board[pos / P_CHUNK] = board[pos / P_CHUNK]
-        | mask << pos % P_CHUNK * B_POINT;
+    vertices[pos / P_CHUNK] = vertices[pos / P_CHUNK]
+        | mask << pos % P_CHUNK * B_VERT;
 
     // clang-format on
 }
 
-void State::point(int pos, chunk_type mask, chunk_type val) {
+void State::vertex(int pos, chunk_type mask, chunk_type val) {
     // clang-format off
 
-    board[pos / P_CHUNK] = (board[pos / P_CHUNK]
-        & ~(mask << pos % P_CHUNK * B_POINT))
-        | (val << pos % P_CHUNK * B_POINT);
+    vertices[pos / P_CHUNK] = (vertices[pos / P_CHUNK]
+        & ~(mask << pos % P_CHUNK * B_VERT))
+        | (val << pos % P_CHUNK * B_VERT);
 
     // clang-format on
 }
@@ -262,19 +284,19 @@ void State::eatApple() {
     // reset visited
     for (int pos = 0; pos < SIZE; ++pos) {
         if (pos != head) {
-            point(pos, VISITED_MASK, 0U);
+            vertex(pos, VISITED_MASK, 0U);
         }
     }
 
     apple = 0;
-    while (apple == tail || (point(apple) & OCCUPIED_MASK) != 0U) {
+    while (apple == tail || (vertex(apple) & OCCUPIED_MASK) != 0U) {
         ++apple;
     }
 }
 
 void State::moveTail() {
-    tail = step(tail, point(tail) & DIRECTION_MASK);
-    point(tail, OCCUPIED_MASK, 0U);
+    tail = step(tail, vertex(tail) & DIRECTION_MASK);
+    vertex(tail, OCCUPIED_MASK, 0U);
 }
 
 } // namespace Snake
