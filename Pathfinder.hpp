@@ -26,7 +26,7 @@ public:
         for (;;) {
             if (states[depth].canExplore(moves[depth])) {
                 // successor state
-                states[depth + 1] = State(states[depth], moves[depth]);
+                states[depth + 1] = State::move(states[depth], moves[depth]);
                 ++depth;
 
                 // success

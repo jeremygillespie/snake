@@ -8,6 +8,7 @@ using namespace std;
 using namespace Snake;
 
 void print(const State &s);
+void printX(const State &s, int y);
 
 int gameTime = 0;
 
@@ -21,7 +22,7 @@ int main() {
 
     int n = dist(engine);
     for (int i = 0; i < n; ++i)
-        s = State(s);
+        s = State::nextApple(s);
 
     print(s);
 
@@ -54,7 +55,7 @@ int main() {
             ++gameTime;
 
             int l = s.length;
-            s = State(s, dir);
+            s = State::move(s, dir);
 
             if (s.length == State::SIZE) {
                 print(s);
@@ -66,7 +67,7 @@ int main() {
                 uniform_int_distribution<> dist(0, State::SIZE - s.length - 1);
                 int n = dist(engine);
                 for (int i = 0; i < n; ++i)
-                    s = State(s);
+                    s = State::nextApple(s);
             }
         } else {
             cout << "You lose!\n";
@@ -76,8 +77,6 @@ int main() {
         print(s);
     }
 }
-
-void printX(const State &s, int y);
 
 void print(const State &s) {
     for (int y = State::HEIGHT - 1; y > 0; --y) {

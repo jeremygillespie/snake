@@ -40,22 +40,25 @@ public:
     // new game constructor
     State();
 
-    // next apple constructor
-    State(const State &prev);
-
-    // step constructor
-    State(const State &prev, chunk_type dir);
-
     // exclude occupied, visited
     bool canExplore(chunk_type dir) const;
 
     // exclude occupied, allow visited
     bool canMove(chunk_type dir) const;
 
+    static State move(const State &prev, chunk_type dir);
+
+    static State nextApple(const State &prev);
+
+    // sets body points visited
+    static State safety(const State &prev);
+
     // value at point
     chunk_type value(int pos) const;
 
     bool operator==(const State &other) const;
+
+    State(const State &other) = default;
 
     State &operator=(const State &other) = default;
 
@@ -114,17 +117,6 @@ State::State() : head{}, tail{}, apple{}, length{START_LENGTH}, board{} {
     eatApple();
 }
 
-State::State(const State &prev) :
-        head{prev.head},
-        tail{prev.tail},
-        apple{prev.apple + 1},
-        length{prev.length},
-        board{prev.board} {
-    while (apple == tail || (point(apple) & OCCUPIED_MASK) != 0U) {
-        apple = (apple + 1) % SIZE;
-    }
-}
-
 bool State::canExplore(chunk_type dir) const {
     // clang-format off
     switch (dir) {
@@ -163,28 +155,51 @@ bool State::canMove(chunk_type dir) const {
     // clang-format on
 }
 
-State::State(const State &prev, chunk_type dir) :
-        head{prev.head},
-        tail{prev.tail},
-        apple{prev.apple},
-        length{prev.length},
-        board{prev.board} {
+State State::move(const State &prev, chunk_type dir) {
+    State next{prev};
     // set head direction
-    point(head, DIRECTION_MASK, dir);
+    next.point(next.head, DIRECTION_MASK, dir);
 
     // update head
-    head = step(head, dir);
+    next.head = step(next.head, dir);
 
     // set head occupied and visited
-    point(head, OCCUPIED_MASK | VISITED_MASK);
+    next.point(next.head, OCCUPIED_MASK | VISITED_MASK);
 
-    if (head == apple) {
-        ++length;
-        if (length != SIZE)
-            eatApple();
+    if (next.head == next.apple) {
+        ++next.length;
+        if (next.length != SIZE) {
+        }
+        next.eatApple();
     } else {
-        moveTail();
+        next.moveTail();
     }
+
+    return next;
+}
+
+State State::nextApple(const State &prev) {
+    State next{prev};
+
+    ++next.apple;
+    while (next.apple == next.tail ||
+           (next.point(next.apple) & OCCUPIED_MASK) != 0U) {
+        next.apple = (next.apple + 1) % SIZE;
+    }
+
+    return next;
+}
+
+State State::safety(const State &prev) {
+    State next{prev};
+
+    for (int pos = 0; pos < SIZE; ++pos) {
+        if ((next.point(pos) & OCCUPIED_MASK) != 0U) {
+            next.point(pos, VISITED_MASK);
+        }
+    }
+
+    return next;
 }
 
 State::chunk_type State::value(int pos) const {
