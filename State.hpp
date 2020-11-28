@@ -88,10 +88,6 @@ private:
 
     static int step(int pos, chunk_type dir);
 
-    void eatApple();
-
-    void moveTail();
-
     // bit 0: direction axis
     // bit 1: direction sign
     // bit 2: visited
@@ -119,7 +115,11 @@ State::State() : head{}, tail{}, apple{}, length{START_LENGTH}, vertices{} {
     vertex(head, VISITED_MASK | OCCUPIED_MASK);
     vertex(tail, UP);
 
-    eatApple();
+    // new apple
+    apple = 0;
+    while (apple == tail || (vertex(apple) & OCCUPIED_MASK) != 0U) {
+        ++apple;
+    }
 }
 
 bool State::canMove(chunk_type dir) const {
@@ -190,13 +190,29 @@ State State::move(const State &prev, chunk_type dir) {
     // set head occupied and visited
     next.vertex(next.head, OCCUPIED_MASK | VISITED_MASK);
 
+    // apple eaten
     if (next.head == next.apple) {
         ++next.length;
         if (next.length != SIZE) {
+            // reset visited
+            for (int pos = 0; pos < SIZE; ++pos) {
+                if (pos != next.head) {
+                    next.vertex(pos, VISITED_MASK, 0U);
+                }
+            }
+
+            // new apple
+            next.apple = 0;
+            while (next.apple == next.tail ||
+                   (next.vertex(next.apple) & OCCUPIED_MASK) != 0U) {
+                ++next.apple;
+            }
         }
-        next.eatApple();
+
     } else {
-        next.moveTail();
+        // move tail
+        next.tail = step(next.tail, next.vertex(next.tail) & DIRECTION_MASK);
+        next.vertex(next.tail, OCCUPIED_MASK, 0U);
     }
 
     return next;
@@ -280,25 +296,6 @@ int State::step(int pos, chunk_type dir) {
     default:
         return pos - 1;
     }
-}
-
-void State::eatApple() {
-    // reset visited
-    for (int pos = 0; pos < SIZE; ++pos) {
-        if (pos != head) {
-            vertex(pos, VISITED_MASK, 0U);
-        }
-    }
-
-    apple = 0;
-    while (apple == tail || (vertex(apple) & OCCUPIED_MASK) != 0U) {
-        ++apple;
-    }
-}
-
-void State::moveTail() {
-    tail = step(tail, vertex(tail) & DIRECTION_MASK);
-    vertex(tail, OCCUPIED_MASK, 0U);
 }
 
 } // namespace Snake
