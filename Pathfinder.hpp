@@ -1,5 +1,5 @@
-#ifndef PATH_HPP
-#define PATH_HPP
+#ifndef PATHFINDER_HPP
+#define PATHFINDER_HPP
 
 #include <vector>
 
@@ -13,9 +13,19 @@ public:
     std::vector<State::chunk_type> moves;
 };
 
-namespace Pathfinder {
+class Exhaustive {
+public:
+    // guaranteed complete
+    virtual bool search(Path &path) = 0;
+};
 
-class DepthFirst {
+class Partial {
+public:
+    // guaranteed complexity bound
+    virtual bool search(Path &path, int attempts) = 0;
+};
+
+class DepthFirst : public Exhaustive {
 public:
     DepthFirst(const State &start) : depth{0} {
         states[0] = start;
@@ -62,8 +72,6 @@ private:
     std::array<State, State::SIZE - 1> states;
     std::array<State::chunk_type, State::SIZE - 1> moves;
 };
-
-} // namespace Pathfinder
 
 } // namespace Snake
 
