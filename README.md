@@ -5,25 +5,23 @@ Snake is a game where you play as a mother duck in a rectangular grassy field of
 A key part of completeness is the safety check. Can the snake reach its own tail? Requires counting duration of each body segment. Can use visited mask as target.
 
 ## Math
-width *W* * height *H* = size *N*
+### Definitions
+width * height = size *N*
 
-snake length *L*
+longest path to apple without loops = *N* - 1
 
-apples left *A* = *N* - *L*
+current head position *H*
 
-initial length *Li*
+a loop is when *H* = *Hp* for any *Hp* that *H* occupied since eating the last apple, including the position of the last apple.
 
-time since start of run *T*
+safety point *S* = any point occupied since eating the last apple which is not currently occupied
 
-time since last apple *Ta*
+### Conjecture
+It is never correct nor optimal perform a loop.
 
-longest path to next apple without loops = *N* - *Ta* - 1
+### Conjecture
+If *H* can reach *S* without eating an apple, then it is possible to win the game without dying
 
-longest possible run = *T* + (*N* - 1) * *A* + *N* - *Ta* - 1
-
-cost of success = *T*
-
-cost of failure = longest possible run + 1
 
 ## Measuring Performance
 Completeness: Success rate. min = 0%, max = optimal
