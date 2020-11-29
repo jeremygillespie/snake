@@ -33,20 +33,19 @@ Completeness: Success rate. min = 0%, max = optimal
 [Time] Complexity: Computation time. min = 1s, max = DFS (log scale)
 
 ## To Do
-* <s>create state</s>
-* <s>add DFS</s>
-* <s>create compact state</s>
-* create exhaustive engine
-  * <s>Path</s>
-  * <s>DFS</s>
-* create faster engine
-  * safety check
-* compare state types
-  * time complexity timer
+- [x] state
+- [x] exhaustive engine
+  - [x] exhaustive apple search
+  - [ ] bug fixes
+- [ ] optimize state
+  - [ ] timer
+  - [ ] progress bar
+- [ ] heuristic engine
+  - [ ] heuristic apple search
+  - [ ] safety search
 
 ## Coming Soon
 * graphics
 * stats
-* Monticarlo search
-* pathfinding
 * benchmarks
+* better heuristics
