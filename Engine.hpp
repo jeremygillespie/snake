@@ -104,10 +104,8 @@ private:
         State s = state;
 
         for (int i = 0; i < n; ++i) {
+            s = State::nextApple(s);
             sum += evalPath(s);
-            if (i != n - 1) {
-                s = State::nextApple(s);
-            }
         }
 
         return sum / n;

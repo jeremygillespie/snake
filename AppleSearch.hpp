@@ -36,44 +36,62 @@ public:
 
     bool operator()(Path &result) {
         for (;;) {
-            if (states[depth].canExplore(moves[depth])) {
-                // successor state
-                states[depth + 1] = State::move(states[depth], moves[depth]);
-                ++depth;
+            if (moves[depth] == 4U) {
+                --depth;
 
-                // success
-                if (states[depth].head == states[depth].apple) {
-                    result = {states[0], states[depth],
-                              std::vector<State::chunk_type>(depth)};
-                    for (int i = 0; i < depth; ++i) {
-                        result.moves[i] = moves[i];
-                    }
-                    return true;
-                }
-
-                moves[depth] = 0U;
-            } else {
-                ++moves[depth];
-                // no more successors
-                if (moves[depth] == 4U) {
-                    --depth;
-
+                if (depth < 0) {
                     // failure
-                    if (depth < 0) {
-                        return false;
-                    }
+                    return false;
+                }
+            } else {
+                State::chunk_type dir = moves[depth];
+                ++moves[depth];
 
-                    ++moves[depth];
+                if (states[depth].canExplore(dir)) {
+
+                    // successor state
+                    states[depth + 1] = State::move(states[depth], dir);
+
+                    ++depth;
+                    moves[depth] = 0U;
+
+                    if (states[depth].head == states[depth].apple) {
+                        // success
+                        result = {states[0], states[depth],
+                                  std::vector<State::chunk_type>(depth)};
+
+                        for (int i = 0; i < depth; ++i) {
+                            result.moves[i] = moves[i] - 1U;
+                        }
+
+                        --depth;
+                        return true;
+                    }
                 }
             }
         }
     }
 
+    // // success
+    // if (states[depth].head == states[depth].apple) {
+    //     result = {states[0], states[depth],
+    //               std::vector<State::chunk_type>(depth)};
+    //     for (int i = 0; i < depth; ++i) {
+    //         result.moves[i] = moves[i];
+    //     }
+    //     return true;
+    // }
+
+    // // failure
+    // if (depth < 0) {
+    //     return false;
+    // }
+
 private:
     int depth;
     std::array<State, State::SIZE - 1> states;
     std::array<State::chunk_type, State::SIZE - 1> moves;
-};
+}; // namespace AppleSearch
 
 } // namespace AppleSearch
 

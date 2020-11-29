@@ -5,21 +5,23 @@
 #include "Engine.hpp"
 #include "State.hpp"
 
-using namespace std;
+using std::cin;
+using std::cout;
 using namespace Snake;
 
 void print(const State &s);
 void printX(const State &s, int y);
+void printPath(const AppleSearch::Path &p);
 
 int gameTime = 0;
 
 int main() {
-    int seed = chrono::system_clock::now().time_since_epoch().count();
-    default_random_engine engine(seed);
+    int seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::default_random_engine engine(seed);
 
     State s = State();
 
-    uniform_int_distribution<> dist(0, State::SIZE - s.length - 1);
+    std::uniform_int_distribution<> dist(1, State::SIZE - s.length);
 
     int n = dist(engine);
     for (int i = 0; i < n; ++i)
@@ -27,9 +29,12 @@ int main() {
 
     print(s);
 
-    for (char c;;) {
+    for (;;) {
+        char c;
+
+        State::chunk_type dir = 0U;
+
         cin >> c;
-        State::chunk_type dir;
 
         switch (c) {
         case 'w':
@@ -46,7 +51,8 @@ int main() {
             break;
         case 'h': {
             Exhaustive engine(s);
-            dir = engine.getPath(0).moves[0];
+            AppleSearch::Path p = engine.getPath(0);
+            printPath(p);
         } break;
         default:
             return 0;
@@ -65,7 +71,7 @@ int main() {
             }
 
             if (l != s.length) {
-                uniform_int_distribution<> dist(0, State::SIZE - s.length - 1);
+                std::uniform_int_distribution<> dist(1, State::SIZE - s.length);
                 int n = dist(engine);
                 for (int i = 0; i < n; ++i)
                     s = State::nextApple(s);
@@ -113,6 +119,27 @@ void printX(const State &s, int y) {
             cout << ".";
         }
         cout << " ";
+    }
+    cout << "\n";
+}
+
+void printPath(const AppleSearch::Path &p) {
+    for (size_t i = 0; i < p.moves.size(); ++i) {
+        State::chunk_type dir = p.moves[i];
+        switch (dir) {
+        case State::UP:
+            cout << "U";
+            break;
+        case State::DOWN:
+            cout << "D";
+            break;
+        case State::LEFT:
+            cout << "L";
+            break;
+        case State::RIGHT:
+            cout << "R";
+            break;
+        }
     }
     cout << "\n";
 }

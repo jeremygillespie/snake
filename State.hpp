@@ -115,11 +115,7 @@ State::State() : head{}, tail{}, apple{}, length{START_LENGTH}, vertices{} {
     vertex(head, VISITED_MASK | OCCUPIED_MASK);
     vertex(tail, UP);
 
-    // new apple
-    apple = 0;
-    while (apple == tail || (vertex(apple) & OCCUPIED_MASK) != 0U) {
-        ++apple;
-    }
+    apple = head;
 }
 
 bool State::canMove(chunk_type dir) const {
@@ -196,16 +192,7 @@ State State::move(const State &prev, chunk_type dir) {
         if (next.length != SIZE) {
             // reset visited
             for (int pos = 0; pos < SIZE; ++pos) {
-                if (pos != next.head) {
-                    next.vertex(pos, VISITED_MASK, 0U);
-                }
-            }
-
-            // new apple
-            next.apple = 0;
-            while (next.apple == next.tail ||
-                   (next.vertex(next.apple) & OCCUPIED_MASK) != 0U) {
-                ++next.apple;
+                next.vertex(pos, VISITED_MASK, 0U);
             }
         }
 
@@ -221,7 +208,12 @@ State State::move(const State &prev, chunk_type dir) {
 State State::nextApple(const State &prev) {
     State next{prev};
 
-    ++next.apple;
+    if (next.head == next.apple) {
+        next.apple = 0;
+    } else {
+        ++next.apple;
+    }
+
     while (next.apple == next.tail ||
            (next.vertex(next.apple) & OCCUPIED_MASK) != 0U) {
         next.apple = (next.apple + 1) % SIZE;
@@ -263,14 +255,14 @@ bool State::operator==(const State &other) const {
 }
 
 State::chunk_type State::vertex(int pos) const {
-    return vertices[pos / P_CHUNK] >> pos % P_CHUNK * B_VERT;
+    return vertices[pos / P_CHUNK] >> (pos % P_CHUNK * B_VERT);
 }
 
 void State::vertex(int pos, chunk_type mask) {
     // clang-format off
     
     vertices[pos / P_CHUNK] = vertices[pos / P_CHUNK]
-        | mask << pos % P_CHUNK * B_VERT;
+        | mask << (pos % P_CHUNK * B_VERT);
 
     // clang-format on
 }
@@ -279,8 +271,8 @@ void State::vertex(int pos, chunk_type mask, chunk_type val) {
     // clang-format off
 
     vertices[pos / P_CHUNK] = (vertices[pos / P_CHUNK]
-        & ~(mask << pos % P_CHUNK * B_VERT))
-        | (val << pos % P_CHUNK * B_VERT);
+        & ~(mask << (pos % P_CHUNK * B_VERT)))
+        | (val << (pos % P_CHUNK * B_VERT));
 
     // clang-format on
 }
