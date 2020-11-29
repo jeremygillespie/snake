@@ -192,7 +192,9 @@ State State::move(const State &prev, chunk_type dir) {
         if (next.length != SIZE) {
             // reset visited
             for (int pos = 0; pos < SIZE; ++pos) {
-                next.vertex(pos, VISITED_MASK, 0U);
+                if(pos != next.head) {
+                    next.vertex(pos, VISITED_MASK, 0U);
+                }
             }
         }
 
