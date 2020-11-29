@@ -52,7 +52,7 @@ int main() {
         case 'h': {
             Exhaustive engine(s);
             AppleSearch::Path p = engine.getPath(0);
-            printPath(p);
+            dir = p.moves[0];
         } break;
         default:
             return 0;
