@@ -38,6 +38,8 @@ class DoubleBreadthFirst : public Exhaustive {
         //  for each point along the path try to find a way to circumvent it
         //  return all points you can't circumvent
 
+        result = std::vector<int>();
+
         return true;
     }
 

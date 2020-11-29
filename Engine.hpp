@@ -7,14 +7,14 @@
 namespace Snake {
 
 struct Cost {
-    float moves;
     float death;
+    float moves;
 
     Cost operator+(const Cost &other) const {
         return Cost{moves + other.moves, death + other.death};
     }
 
-    Cost operator+=(const Cost &other) {
+    void operator+=(const Cost &other) {
         moves += other.moves;
         death += other.death;
     }
@@ -54,13 +54,24 @@ public:
     Exhaustive(const State &start) : start{start} {}
 
     AppleSearch::Path getPath(int nextApple) {
-
+        AppleSearch::DepthFirst search(start);
         AppleSearch::Path path;
-        // generate all possible paths from start
-        // return the one with the least cost
-        start = path.end;
+        AppleSearch::Path best;
+        Cost bestCost{1.0f, 0.0f};
+        while (search(path)) {
+            Cost c = evalApple(path.end);
+            if (c < bestCost) {
+                best = path;
+                bestCost = c;
+            }
+        }
 
-        return path;
+        start = best.end;
+        for (int i = 0; i < nextApple; ++i) {
+            start = State::nextApple(start);
+        }
+
+        return best;
     }
 
 private:
@@ -71,8 +82,14 @@ private:
         AppleSearch::DepthFirst search(state);
         AppleSearch::Path path;
 
-        Cost best;
+        // death if no paths
+        Cost best = Cost{1.0f, 0.0f};
         while (search(path)) {
+            Cost c = evalApple(path.end);
+            c.moves += path.moves.size();
+            if (c < best) {
+                best = c;
+            }
         }
 
         return best;
@@ -80,13 +97,17 @@ private:
 
     // average cost among possible apples
     Cost evalApple(const State &state) {
-        Cost sum = Cost{0.0f, 0.0f};
+
+        // success if no more apples
+        Cost sum{0.0f, 0.0f};
         int n = State::SIZE - state.length;
         State s = state;
 
         for (int i = 0; i < n; ++i) {
             sum += evalPath(s);
-            s = State::nextApple(s);
+            if (i != n - 1) {
+                s = State::nextApple(s);
+            }
         }
 
         return sum / n;

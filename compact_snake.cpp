@@ -2,6 +2,7 @@
 #include <iostream>
 #include <random>
 
+#include "Engine.hpp"
 #include "State.hpp"
 
 using namespace std;
@@ -43,10 +44,10 @@ int main() {
         case 'd':
             dir = State::RIGHT;
             break;
-        // case 'h':
-        //     cout << "\n";
-        //     dir = Search::bestMove(s);
-        //     break;
+        case 'h': {
+            Exhaustive engine(s);
+            dir = engine.getPath(0).moves[0];
+        } break;
         default:
             return 0;
         }
