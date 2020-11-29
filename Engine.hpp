@@ -19,7 +19,7 @@ struct Cost {
         death += other.death;
     }
 
-    Cost operator/(int n) const { return Cost{moves / n, death / n}; }
+    Cost operator/(int n) const { return Cost{death / n, moves / n}; }
 
     bool operator==(const Cost &other) const {
         return death == other.death && moves == other.moves;
@@ -60,6 +60,7 @@ public:
         Cost bestCost{1.0f, 0.0f};
         while (search(path)) {
             Cost c = evalApple(path.end);
+            c.moves += path.moves.size();
             if (c < bestCost) {
                 best = path;
                 bestCost = c;
@@ -100,6 +101,10 @@ private:
 
         // success if no more apples
         Cost sum{0.0f, 0.0f};
+        if (state.length == State::SIZE) {
+            return sum;
+        }
+
         int n = State::SIZE - state.length;
         State s = state;
 

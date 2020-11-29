@@ -36,13 +36,10 @@ public:
 
     bool operator()(Path &result) {
         for (;;) {
-            if (moves[depth] == 4U) {
+            if (depth < 0) {
+                return false;
+            } else if (moves[depth] == 4U) {
                 --depth;
-
-                if (depth < 0) {
-                    // failure
-                    return false;
-                }
             } else {
                 State::chunk_type dir = moves[depth];
                 ++moves[depth];
@@ -89,7 +86,7 @@ public:
 
 private:
     int depth;
-    std::array<State, State::SIZE - 1> states;
+    std::array<State, State::SIZE> states;
     std::array<State::chunk_type, State::SIZE - 1> moves;
 }; // namespace AppleSearch
 

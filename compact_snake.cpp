@@ -50,9 +50,8 @@ int main() {
             dir = State::RIGHT;
             break;
         case 'h': {
-            Exhaustive engine(s);
-            AppleSearch::Path p = engine.getPath(0);
-            dir = p.moves[0];
+            Exhaustive engine = Exhaustive(s);
+            dir = engine.getPath(0).moves[0];
         } break;
         default:
             return 0;

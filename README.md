@@ -33,8 +33,6 @@ Completeness: Success rate. min = 0%, max = optimal
 ## To Do
 - [x] state
 - [x] exhaustive engine
-  - [x] exhaustive apple search
-  - [ ] bug fixes
 - [ ] optimize state
   - [ ] timer
   - [ ] progress bar
