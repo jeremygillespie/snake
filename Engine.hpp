@@ -7,29 +7,40 @@
 namespace Snake {
 
 struct Cost {
-    float time;
+    float moves;
     float death;
 
+    Cost operator+(const Cost &other) const {
+        return Cost{moves + other.moves, death + other.death};
+    }
+
+    Cost operator+=(const Cost &other) {
+        moves += other.moves;
+        death += other.death;
+    }
+
+    Cost operator/(int n) const { return Cost{moves / n, death / n}; }
+
     bool operator==(const Cost &other) const {
-        return death == other.death && time == other.time;
+        return death == other.death && moves == other.moves;
     }
 
     bool operator<(const Cost &other) const {
-        return death == other.death ? time < other.time : death < other.death;
+        return death == other.death ? moves < other.moves : death < other.death;
     }
 
     bool operator>(const Cost &other) const {
-        return death == other.death ? time > other.time : death > other.death;
+        return death == other.death ? moves > other.moves : death > other.death;
     }
 
     bool operator<=(const Cost &other) const {
         return death < other.death ||
-               (death == other.death && time <= other.time);
+               (death == other.death && moves <= other.moves);
     }
 
     bool operator>=(const Cost &other) const {
         return death > other.death ||
-               (death == other.death && time >= other.time);
+               (death == other.death && moves >= other.moves);
     }
 };
 
@@ -43,16 +54,43 @@ public:
     Exhaustive(const State &start) : start{start} {}
 
     AppleSearch::Path getPath(int nextApple) {
-        // TODO
-        return AppleSearch::Path{};
+
+        AppleSearch::Path path;
+        // generate all possible paths from start
+        // return the one with the least cost
+        start = path.end;
+
+        return path;
     }
 
 private:
     State start;
 
-    Cost evalPath(const State &s) { return Cost{}; }
+    // least cost among possible paths
+    Cost evalPath(const State &state) {
+        AppleSearch::DepthFirst search(state);
+        AppleSearch::Path path;
 
-    Cost evalApple(const State &s) { return Cost{}; }
+        Cost best;
+        while (search(path)) {
+        }
+
+        return best;
+    }
+
+    // average cost among possible apples
+    Cost evalApple(const State &state) {
+        Cost sum = Cost{0.0f, 0.0f};
+        int n = State::SIZE - state.length;
+        State s = state;
+
+        for (int i = 0; i < n; ++i) {
+            sum += evalPath(s);
+            s = State::nextApple(s);
+        }
+
+        return sum / n;
+    }
 };
 
 } // namespace Snake
