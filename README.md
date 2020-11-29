@@ -16,10 +16,10 @@ a loop is when *H* = *Hp* for any *Hp* that *H* occupied since eating the last a
 
 safety point *S* = any point occupied since eating the last apple which is not currently occupied
 
-### Conjecture
+#### Conjecture
 It is never correct nor optimal perform a loop.
 
-### Conjecture
+#### Conjecture
 If *H* can reach *S* without eating an apple, then it is possible to win the game without dying
 
 
