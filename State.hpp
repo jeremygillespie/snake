@@ -48,8 +48,11 @@ public:
     // incrememnt apple location
     static State nextApple(const State &prev);
 
-    // sets body vertices visited
-    static State safety(const State &prev);
+    // set body visited
+    static State safetyInit(const State &prev);
+
+    // SafetySearch successor ignores apple
+    static State safetyMove(const State &prev, unsigned char dir);
 
     // value at vertex
     unsigned char value(int pos) const;
@@ -211,14 +214,32 @@ State State::nextApple(const State &prev) {
     return next;
 }
 
-State State::safety(const State &prev) {
+State State::safetyInit(const State &prev) {
     State next{prev};
 
     for (int pos = 0; pos < SIZE; ++pos) {
-        if ((next.vertex(pos) & OCCUPIED_MASK) != 0U) {
+        if (pos == next.tail || (next.vertex(pos) & OCCUPIED_MASK) != 0U) {
             next.vertex(pos, VISITED_MASK);
         }
     }
+
+    return next;
+}
+
+State State::safetyMove(const State &prev, unsigned char dir) {
+    State next{prev};
+    // set head direction
+    next.vertex(next.head, DIRECTION_MASK, dir);
+
+    // update head
+    next.head = step(next.head, dir);
+
+    // set head occupied and visited
+    next.vertex(next.head, OCCUPIED_MASK | VISITED_MASK);
+
+    // move tail
+    next.tail = step(next.tail, next.vertex(next.tail) & DIRECTION_MASK);
+    next.vertex(next.tail, OCCUPIED_MASK, 0U);
 
     return next;
 }

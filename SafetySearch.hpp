@@ -14,8 +14,8 @@ public:
     virtual bool operator()(std::vector<int> &result) = 0;
 };
 
-class DoubleBreadthFirst : public SafetySearch {
-    DoubleBreadthFirst(const State &start) : start{start} {}
+class BreadthFirst : public SafetySearch {
+    BreadthFirst(const State &start) : start{start} {}
 
     bool operator()(std::vector<int> &result) {
 
