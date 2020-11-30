@@ -32,7 +32,7 @@ int main() {
     for (;;) {
         char c;
 
-        State::chunk_type dir = 0U;
+        unsigned char dir = 0U;
 
         cin >> c;
 
@@ -94,7 +94,7 @@ void print(const State &s) {
 
 void printX(const State &s, int y) {
     for (int x = 0; x < State::WIDTH; ++x) {
-        State::chunk_type c = s.value(x * State::HEIGHT + y);
+        unsigned char c = s.value(x * State::HEIGHT + y);
         switch (c) {
         case State::HEAD:
             cout << "H";
@@ -124,7 +124,7 @@ void printX(const State &s, int y) {
 
 void printPath(const AppleSearch::Path &p) {
     for (size_t i = 0; i < p.moves.size(); ++i) {
-        State::chunk_type dir = p.moves[i];
+        unsigned char dir = p.moves[i];
         switch (dir) {
         case State::UP:
             cout << "U";

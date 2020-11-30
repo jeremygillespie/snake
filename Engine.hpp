@@ -1,6 +1,8 @@
 #ifndef ENGINE_HPP
 #define ENGINE_HPP
 
+#include <iostream>
+
 #include "AppleSearch.hpp"
 #include "SafetySearch.hpp"
 
@@ -56,6 +58,9 @@ public:
     AppleSearch::Path getPath(int nextApple) {
         AppleSearch::DepthFirst search(start);
         AppleSearch::Path path;
+
+        search = AppleSearch::DepthFirst(start);
+
         AppleSearch::Path best;
         Cost bestCost{1.0f, 0.0f};
         while (search(path)) {
@@ -66,6 +71,8 @@ public:
                 bestCost = c;
             }
         }
+
+        std::cout << "\n";
 
         start = best.end;
         for (int i = 0; i < nextApple; ++i) {

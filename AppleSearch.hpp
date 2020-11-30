@@ -12,7 +12,7 @@ namespace AppleSearch {
 struct Path {
 public:
     State start, end;
-    std::vector<State::chunk_type> moves;
+    std::vector<unsigned char> moves;
 };
 
 class Exhaustive {
@@ -41,7 +41,7 @@ public:
             } else if (moves[depth] == 4U) {
                 --depth;
             } else {
-                State::chunk_type dir = moves[depth];
+                unsigned char dir = moves[depth];
                 ++moves[depth];
 
                 if (states[depth].canExplore(dir)) {
@@ -55,7 +55,7 @@ public:
                     if (states[depth].head == states[depth].apple) {
                         // success
                         result = {states[0], states[depth],
-                                  std::vector<State::chunk_type>(depth)};
+                                  std::vector<unsigned char>(depth)};
 
                         for (int i = 0; i < depth; ++i) {
                             result.moves[i] = moves[i] - 1U;
@@ -72,7 +72,7 @@ public:
     // // success
     // if (states[depth].head == states[depth].apple) {
     //     result = {states[0], states[depth],
-    //               std::vector<State::chunk_type>(depth)};
+    //               std::vector<unsigned char>(depth)};
     //     for (int i = 0; i < depth; ++i) {
     //         result.moves[i] = moves[i];
     //     }
@@ -87,7 +87,7 @@ public:
 private:
     int depth;
     std::array<State, State::SIZE> states;
-    std::array<State::chunk_type, State::SIZE - 1> moves;
+    std::array<unsigned char, State::SIZE - 1> moves;
 }; // namespace AppleSearch
 
 } // namespace AppleSearch

@@ -14,8 +14,6 @@ namespace Snake {
 
 class State {
 public:
-    using chunk_type = uint32_t;
-
     static constexpr int WIDTH = SNAKE_STATE_BOARD_WIDTH;
     static constexpr int HEIGHT = SNAKE_STATE_BOARD_HEIGHT;
     static constexpr int START_LENGTH = SNAKE_STATE_START_LENGTH;
@@ -26,14 +24,9 @@ public:
     static constexpr int SPACE = SIZE * SIZE;
     static constexpr int DEPTH = SIZE - START_LENGTH;
 
-    static constexpr chunk_type RIGHT = 0U;
-    static constexpr chunk_type UP = 1U;
-    static constexpr chunk_type LEFT = 2U;
-    static constexpr chunk_type DOWN = 3U;
-    static constexpr chunk_type HEAD = 4U;
-    static constexpr chunk_type APPLE = 5U;
-    static constexpr chunk_type EMPTY = 6U;
-    static constexpr chunk_type VISITED = 7U;
+    static constexpr unsigned char RIGHT = 0U, UP = 1U, LEFT = 2U, DOWN = 3U,
+                                   HEAD = 4U, APPLE = 5U, EMPTY = 6U,
+                                   VISITED = 7U;
 
     int head, tail, apple, length;
 
@@ -41,16 +34,16 @@ public:
     State();
 
     // exclude occupied, allow visited
-    bool canMove(chunk_type dir) const;
+    bool canMove(unsigned char dir) const;
 
     // exclude occupied, exclude visited
-    bool canExplore(chunk_type dir) const;
+    bool canExplore(unsigned char dir) const;
 
     // exclude occupied, require visited
-    bool canLoop(chunk_type dir) const;
+    bool canLoop(unsigned char dir) const;
 
     // successor state after move
-    static State move(const State &prev, chunk_type dir);
+    static State move(const State &prev, unsigned char dir);
 
     // incrememnt apple location
     static State nextApple(const State &prev);
@@ -59,7 +52,7 @@ public:
     static State safety(const State &prev);
 
     // value at vertex
-    chunk_type value(int pos) const;
+    unsigned char value(int pos) const;
 
     bool operator==(const State &other) const;
 
@@ -68,34 +61,28 @@ public:
     State &operator=(const State &other) = default;
 
 private:
-    static constexpr int B_VERT = 4;  // bits per point
-    static constexpr int P_CHUNK = 1; // points per chunk
+    static constexpr int VERTICES_SIZE = (SIZE - 1) + 1;
 
-    static_assert(B_VERT * P_CHUNK <= 8 * sizeof(chunk_type),
-                  "chunk does not fit in chunk_type");
+    std::array<unsigned char, VERTICES_SIZE> vertices;
 
-    static constexpr int VERTICES_SIZE = (SIZE - 1) / P_CHUNK + 1;
-
-    std::array<chunk_type, VERTICES_SIZE> vertices;
-
-    chunk_type vertex(int pos) const;
+    unsigned char vertex(int pos) const;
 
     // set masked bits to true
-    void vertex(int pos, chunk_type mask);
+    void vertex(int pos, unsigned char mask);
 
     // set masked bits to val
-    void vertex(int pos, chunk_type mask, chunk_type val);
+    void vertex(int pos, unsigned char mask, unsigned char val);
 
-    static int step(int pos, chunk_type dir);
+    static int step(int pos, unsigned char dir);
 
     // bit 0: direction axis
     // bit 1: direction sign
     // bit 2: visited
     // bit 3: occupied
-    static constexpr chunk_type DIRECTION_MASK = 0b0011;
-    static constexpr chunk_type EXPLORE_MASK = 0b1100;
-    static constexpr chunk_type OCCUPIED_MASK = 0b0100;
-    static constexpr chunk_type VISITED_MASK = 0b1000;
+    static constexpr unsigned char DIRECTION_MASK = 0b0011,
+                                   EXPLORE_MASK = 0b1100,
+                                   OCCUPIED_MASK = 0b0100,
+                                   VISITED_MASK = 0b1000;
 };
 
 State::State() : head{}, tail{}, apple{}, length{START_LENGTH}, vertices{} {
@@ -118,7 +105,7 @@ State::State() : head{}, tail{}, apple{}, length{START_LENGTH}, vertices{} {
     apple = head;
 }
 
-bool State::canMove(chunk_type dir) const {
+bool State::canMove(unsigned char dir) const {
     // clang-format off
     switch (dir) {
     case RIGHT:
@@ -137,7 +124,7 @@ bool State::canMove(chunk_type dir) const {
     // clang-format on
 }
 
-bool State::canExplore(chunk_type dir) const {
+bool State::canExplore(unsigned char dir) const {
     // clang-format off
     switch (dir) {
     case RIGHT:
@@ -156,7 +143,7 @@ bool State::canExplore(chunk_type dir) const {
     // clang-format on
 }
 
-bool State::canLoop(chunk_type dir) const {
+bool State::canLoop(unsigned char dir) const {
     // clang-format off
     switch (dir) {
     case RIGHT:
@@ -175,7 +162,7 @@ bool State::canLoop(chunk_type dir) const {
     // clang-format on
 }
 
-State State::move(const State &prev, chunk_type dir) {
+State State::move(const State &prev, unsigned char dir) {
     State next{prev};
     // set head direction
     next.vertex(next.head, DIRECTION_MASK, dir);
@@ -192,7 +179,7 @@ State State::move(const State &prev, chunk_type dir) {
         if (next.length != SIZE) {
             // reset visited
             for (int pos = 0; pos < SIZE; ++pos) {
-                if(pos != next.head) {
+                if (pos != next.head) {
                     next.vertex(pos, VISITED_MASK, 0U);
                 }
             }
@@ -236,7 +223,7 @@ State State::safety(const State &prev) {
     return next;
 }
 
-State::chunk_type State::value(int pos) const {
+unsigned char State::value(int pos) const {
     if (pos == head)
         return HEAD;
     if (pos == apple)
@@ -256,30 +243,17 @@ bool State::operator==(const State &other) const {
     return true;
 }
 
-State::chunk_type State::vertex(int pos) const {
-    return vertices[pos / P_CHUNK] >> (pos % P_CHUNK * B_VERT);
+unsigned char State::vertex(int pos) const { return vertices[pos]; }
+
+void State::vertex(int pos, unsigned char mask) {
+    vertices[pos] = vertices[pos] | mask;
 }
 
-void State::vertex(int pos, chunk_type mask) {
-    // clang-format off
-    
-    vertices[pos / P_CHUNK] = vertices[pos / P_CHUNK]
-        | mask << (pos % P_CHUNK * B_VERT);
-
-    // clang-format on
+void State::vertex(int pos, unsigned char mask, unsigned char val) {
+    vertices[pos] = (vertices[pos] & ~mask) | val;
 }
 
-void State::vertex(int pos, chunk_type mask, chunk_type val) {
-    // clang-format off
-
-    vertices[pos / P_CHUNK] = (vertices[pos / P_CHUNK]
-        & ~(mask << (pos % P_CHUNK * B_VERT)))
-        | (val << (pos % P_CHUNK * B_VERT));
-
-    // clang-format on
-}
-
-int State::step(int pos, chunk_type dir) {
+int State::step(int pos, unsigned char dir) {
     switch (dir) {
     case RIGHT:
         return pos + HEIGHT;

@@ -33,7 +33,7 @@ Completeness: Success rate. min = 0%, max = optimal
 ## To Do
 - [x] state
 - [x] exhaustive engine
-- [ ] optimize state
+- [ ] stats
   - [ ] timer
   - [ ] progress bar
 - [ ] heuristic engine
