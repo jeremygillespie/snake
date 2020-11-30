@@ -11,7 +11,7 @@ using namespace Snake;
 
 void print(const State &s);
 void printX(const State &s, int y);
-void printPath(const AppleSearch::Path &p);
+void printPath(const Path &p);
 
 int gameTime = 0;
 
@@ -122,7 +122,7 @@ void printX(const State &s, int y) {
     cout << "\n";
 }
 
-void printPath(const AppleSearch::Path &p) {
+void printPath(const Path &p) {
     for (size_t i = 0; i < p.moves.size(); ++i) {
         unsigned char dir = p.moves[i];
         switch (dir) {

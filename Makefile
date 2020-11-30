@@ -8,8 +8,8 @@ L=2
 CXX=g++
 CXXFLAGS=-Wall -Wextra -std=c++11 -D SNAKE_STATE_BOARD_WIDTH=${W} -D SNAKE_STATE_BOARD_HEIGHT=${H} -D SNAKE_STATE_START_LENGTH=${L}
 
-cl_snake_compact: bin
-	${CXX} ${CXXFLAGS} -O3 ${FILES} -o bin/cl_snake_compact
+cl_snake: bin
+	${CXX} ${CXXFLAGS} -O3 ${FILES} -o bin/cl_snake
 
 debug: bin
 	${CXX} ${CXXFLAGS} -g ${FILES} -o bin/debug

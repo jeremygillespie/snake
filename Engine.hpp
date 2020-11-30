@@ -48,20 +48,20 @@ struct Cost {
 
 class Engine {
 public:
-    virtual AppleSearch::Path getPath(int nextApple) = 0;
+    virtual Path getPath(int nextApple) = 0;
 };
 
 class Exhaustive : public Engine {
 public:
     Exhaustive(const State &start) : start{start} {}
 
-    AppleSearch::Path getPath(int nextApple) {
-        AppleSearch::DepthFirst search(start);
-        AppleSearch::Path path;
+    Path getPath(int nextApple) {
+        DepthFirst search(start);
+        Path path;
 
-        search = AppleSearch::DepthFirst(start);
+        search = DepthFirst(start);
 
-        AppleSearch::Path best;
+        Path best;
         Cost bestCost{1.0f, 0.0f};
         while (search(path)) {
             Cost c = evalApple(path.end);
@@ -87,8 +87,8 @@ private:
 
     // least cost among possible paths
     Cost evalPath(const State &state) {
-        AppleSearch::DepthFirst search(state);
-        AppleSearch::Path path;
+        DepthFirst search(state);
+        Path path;
 
         // death if no paths
         Cost best = Cost{1.0f, 0.0f};

@@ -8,17 +8,13 @@
 
 namespace Snake {
 
-namespace SafetySearch {
-
-struct Path {};
-
-class Exhaustive {
+class SafetySearch {
 public:
     // returns potentially unsafe apple spawn locations
     virtual bool operator()(std::vector<int> &result) = 0;
 };
 
-class DoubleBreadthFirst : public Exhaustive {
+class DoubleBreadthFirst : public SafetySearch {
     DoubleBreadthFirst(const State &start) : start{start} {}
 
     bool operator()(std::vector<int> &result) {
@@ -49,8 +45,6 @@ private:
     std::queue<State> search;
     std::queue<Path> paths;
 };
-
-} // namespace SafetySearch
 
 } // namespace Snake
 

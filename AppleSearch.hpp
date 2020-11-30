@@ -7,27 +7,19 @@
 
 namespace Snake {
 
-namespace AppleSearch {
-
 struct Path {
 public:
     State start, end;
     std::vector<unsigned char> moves;
 };
 
-class Exhaustive {
+class AppleSearch {
 public:
     // guaranteed complete
     virtual bool operator()(Path &result) = 0;
 };
 
-class Partial {
-public:
-    // guaranteed complexity bound
-    virtual bool operator()(Path &result, int attempts) = 0;
-};
-
-class DepthFirst : public Exhaustive {
+class DepthFirst : public AppleSearch {
 public:
     DepthFirst(const State &start) : depth{0} {
         states[0] = start;
@@ -88,9 +80,7 @@ private:
     int depth;
     std::array<State, State::SIZE> states;
     std::array<unsigned char, State::SIZE - 1> moves;
-}; // namespace AppleSearch
-
-} // namespace AppleSearch
+};
 
 } // namespace Snake
 
