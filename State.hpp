@@ -13,7 +13,6 @@
 
 namespace Snake {
 
-
 class State {
 public:
     static constexpr int WIDTH = SNAKE_STATE_BOARD_WIDTH;

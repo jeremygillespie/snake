@@ -33,9 +33,9 @@ Completeness: Success rate. min = 0%, max = optimal
 ## To Do
 - [x] state
 - [x] exhaustive engine
-- [ ] stats
-  - [ ] timer
-  - [ ] progress bar
+- [ ] graphics
+  - [ ] install SDL2
+  - [ ] make arcade game
 - [ ] heuristic engine
   - [ ] heuristic apple search
   - [ ] safety search
