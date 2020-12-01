@@ -13,11 +13,6 @@
 
 namespace Snake {
 
-struct Path {
-public:
-    State end;
-    std::vector<unsigned char> moves;
-};
 
 class State {
 public:
@@ -95,6 +90,12 @@ private:
                                    OCCUPIED_MASK = 0b00100,
                                    VISITED_MASK = 0b01000, WALL_MASK = 0b10000,
                                    EXPLORE_MASK = 0b11100, MOVE_MASK = 0b10100;
+};
+
+struct Path {
+public:
+    State end;
+    std::vector<unsigned char> moves;
 };
 
 State::State() : head{}, tail{}, apple{}, length{START_LENGTH}, vertices{} {
