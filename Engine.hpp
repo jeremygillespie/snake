@@ -57,7 +57,7 @@ public:
 
     Path getPath(int nextApple) {
         DepthFirst search(start);
-        Path path;
+        Path path{};
 
         search = DepthFirst(start);
 

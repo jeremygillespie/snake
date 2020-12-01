@@ -53,7 +53,9 @@ int main() {
             break;
         case 'h': {
             Exhaustive engine = Exhaustive(s);
-            dir = engine.getPath(0).moves[0];
+            Path p = engine.getPath(0);
+            if(p.moves.size() > 0)
+                dir = p.moves[0];
         } break;
         default:
             return 0;
