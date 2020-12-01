@@ -9,8 +9,15 @@
 #endif
 
 #include <array>
+#include <vector>
 
 namespace Snake {
+
+struct Path {
+public:
+    State end;
+    std::vector<unsigned char> moves;
+};
 
 class State {
 public:
@@ -30,8 +37,11 @@ public:
 
     int head, tail, apple, length;
 
-    // new game constructor
+    // new game
     State();
+
+    // new game with walls
+    State(std::vector<unsigned char> walls);
 
     // exclude occupied, allow visited
     bool canMove(unsigned char dir) const;
@@ -64,9 +74,7 @@ public:
     State &operator=(const State &other) = default;
 
 private:
-    static constexpr int VERTICES_SIZE = (SIZE - 1) + 1;
-
-    std::array<unsigned char, VERTICES_SIZE> vertices;
+    std::array<unsigned char, SIZE> vertices;
 
     unsigned char vertex(int pos) const;
 
@@ -78,18 +86,19 @@ private:
 
     static int step(int pos, unsigned char dir);
 
-    // bit 0: direction axis
-    // bit 1: direction sign
-    // bit 2: visited
-    // bit 3: occupied
-    static constexpr unsigned char DIRECTION_MASK = 0b0011,
-                                   EXPLORE_MASK = 0b1100,
-                                   OCCUPIED_MASK = 0b0100,
-                                   VISITED_MASK = 0b1000;
+    // bit 1: direction axis
+    // bit 2: direction sign
+    // bit 3: visited
+    // bit 4: occupied
+    // bit 5: wall
+    static constexpr unsigned char DIRECTION_MASK = 0b00011,
+                                   OCCUPIED_MASK = 0b00100,
+                                   VISITED_MASK = 0b01000, WALL_MASK = 0b10000,
+                                   EXPLORE_MASK = 0b11100, MOVE_MASK = 0b10100;
 };
 
 State::State() : head{}, tail{}, apple{}, length{START_LENGTH}, vertices{} {
-    for (int pos = 0; pos < VERTICES_SIZE; ++pos) {
+    for (int pos = 0; pos < SIZE; ++pos) {
         vertices[pos] = 0U;
     }
 
@@ -113,16 +122,16 @@ bool State::canMove(unsigned char dir) const {
     switch (dir) {
     case RIGHT:
         return head + HEIGHT < SIZE &&
-               (vertex(step(head, dir)) & OCCUPIED_MASK) == 0U;
+               (vertex(step(head, dir)) & MOVE_MASK) == 0U;
     case UP:
         return head % HEIGHT < HEIGHT - 1 &&
-               (vertex(step(head, dir)) & OCCUPIED_MASK) == 0U;
+               (vertex(step(head, dir)) & MOVE_MASK) == 0U;
     case LEFT:
         return head >= HEIGHT &&
-                (vertex(step(head, dir)) & OCCUPIED_MASK) == 0U;
+                (vertex(step(head, dir)) & MOVE_MASK) == 0U;
     default:
         return head % HEIGHT != 0 &&
-               (vertex(step(head, dir)) & OCCUPIED_MASK) == 0U;
+               (vertex(step(head, dir)) & MOVE_MASK) == 0U;
     }
     // clang-format on
 }
@@ -207,7 +216,7 @@ State State::nextApple(const State &prev) {
     }
 
     while (next.apple == next.tail ||
-           (next.vertex(next.apple) & OCCUPIED_MASK) != 0U) {
+           (next.vertex(next.apple) & MOVE_MASK) != 0U) {
         next.apple = (next.apple + 1) % SIZE;
     }
 
@@ -258,7 +267,7 @@ bool State::operator==(const State &other) const {
     if (head != other.head || tail != other.tail || apple != other.apple ||
         length != other.length)
         return false;
-    for (int i = 0; i < VERTICES_SIZE; ++i)
+    for (int i = 0; i < SIZE; ++i)
         if (vertices[i] != other.vertices[i])
             return false;
     return true;

@@ -1,24 +1,16 @@
 #ifndef APPLE_SEARCH_HPP
 #define APPLE_SEARCH_HPP
 
-#include <vector>
-
 #include "State.hpp"
 
 namespace Snake {
 
-struct Path {
-public:
-    State start, end;
-    std::vector<unsigned char> moves;
-};
-
 class AppleSearch {
 public:
-    // guaranteed complete
     virtual bool operator()(Path &result) = 0;
 };
 
+// return a different arbitrary path each time
 class DepthFirst : public AppleSearch {
 public:
     DepthFirst(const State &start) : depth{0} {
@@ -46,7 +38,7 @@ public:
 
                     if (states[depth].head == states[depth].apple) {
                         // success
-                        result = {states[0], states[depth],
+                        result = {states[depth],
                                   std::vector<unsigned char>(depth)};
 
                         for (int i = 0; i < depth; ++i) {
@@ -60,21 +52,6 @@ public:
             }
         }
     }
-
-    // // success
-    // if (states[depth].head == states[depth].apple) {
-    //     result = {states[0], states[depth],
-    //               std::vector<unsigned char>(depth)};
-    //     for (int i = 0; i < depth; ++i) {
-    //         result.moves[i] = moves[i];
-    //     }
-    //     return true;
-    // }
-
-    // // failure
-    // if (depth < 0) {
-    //     return false;
-    // }
 
 private:
     int depth;

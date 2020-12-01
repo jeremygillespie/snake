@@ -15,6 +15,8 @@ void printPath(const Path &p);
 
 int gameTime = 0;
 
+std::vector<unsigned char> walls = {};
+
 int main() {
     int seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::default_random_engine engine(seed);
