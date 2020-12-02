@@ -1,19 +1,20 @@
-OUT_PATH=./bin
-FILES=compact_snake.cpp
+
 
 W=4
 H=4
 L=2
 
 CXX=g++
-CXXFLAGS=-Wall -Wextra -std=c++11 -D SNAKE_STATE_BOARD_WIDTH=${W} -D SNAKE_STATE_BOARD_HEIGHT=${H} -D SNAKE_STATE_START_LENGTH=${L}
+CXXFLAGS=`sdl2-config --cflags --libs` -Wall -Wextra -std=c++11 -D SNAKE_STATE_BOARD_WIDTH=${W} -D SNAKE_STATE_BOARD_HEIGHT=${H} -D SNAKE_STATE_START_LENGTH=${L}
+
+snake: bin
+	${CXX} snake.cpp -o bin/snake ${CXXFLAGS}
 
 cl_snake: bin
-	${CXX} ${CXXFLAGS} -O3 ${FILES} -o bin/cl_snake
+	${CXX} -O3 compact_snake.cpp -o bin/cl_snake ${CXXFLAGS}
 
 debug: bin
-	${CXX} ${CXXFLAGS} -g ${FILES} -o bin/debug
-
+	${CXX} -g snake.cpp -o bin/debug ${CXXFLAGS}
 bin:
 	mkdir -p ./bin
 
