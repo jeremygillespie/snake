@@ -10,9 +10,6 @@ CXXFLAGS=`sdl2-config --cflags --libs` -Wall -Wextra -std=c++11 -D SNAKE_STATE_B
 snake: bin
 	${CXX} snake.cpp -o bin/snake ${CXXFLAGS}
 
-cl_snake: bin
-	${CXX} -O3 compact_snake.cpp -o bin/cl_snake ${CXXFLAGS}
-
 debug: bin
 	${CXX} -g snake.cpp -o bin/debug ${CXXFLAGS}
 bin:
