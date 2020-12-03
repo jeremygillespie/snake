@@ -16,9 +16,9 @@ A vertex is a point that the snake can occupy. A corner is any set of four adjac
 
       ELSE Cleft = L, Cright = L
 
-If a move would mark a corner the opposite of what it is already marked, you cannot make that move.
+If an exterior corner is marked for N turns, then an additional N-4 adjacent exterior corners in both directions must be marked equally.
 
-A vertex is unreachable if all its corners match.
+Keep a running total of left turns and right turns. If the total is at +3L and you would assign L to an L corner, you have made a loop. If the total is at +4L and you would assign L to an R corner, you have made an outward spiral. If the total is at +4L you would assign R to an L corner, you have made an inward spiral (very bad).
 
 ## To Do
 - [x] variable size state
