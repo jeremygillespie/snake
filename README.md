@@ -16,9 +16,7 @@ A vertex is a point that the snake can occupy. A corner is any set of four adjac
 
       ELSE Cleft = L, Cright = L
 
-If an exterior corner is marked for N turns, then an additional N-4 adjacent exterior corners in both directions must be marked equally.
-
-Keep a running total of left turns and right turns. If the total is at +3L and you would assign L to an L corner, you have made a loop. If the total is at +4L and you would assign L to an R corner, you have made an outward spiral. If the total is at +4L you would assign R to an L corner, you have made an inward spiral (very bad).
+This technique, in combination with a running total of moves(N, S, E, W) and turns(L, R) shall fulfill three tasks: maintain a cyclical path, detect loops/spirals/inaccessible vertices, and converge to a Hamiltonian path.
 
 ## To Do
 - [x] variable size state
