@@ -5,6 +5,10 @@
 
 #include <SDL2/SDL.h>
 
+#include "State.hpp"
+
+namespace Snake {
+
 class App {
 public:
     App();
@@ -28,6 +32,10 @@ private:
     SDL_Renderer *renderer;
     SDL_Texture *snakeTexture;
     SDL_Texture *appleTexture;
+
+    State *state;
+    unsigned int lastMoveTime;
+    Direction direction;
 };
 
 App::App() :
@@ -87,29 +95,60 @@ bool App::OnInit() {
 
     SDL_FreeSurface(surface);
 
+    lastMoveTime = SDL_GetTicks();
+    direction = Direction::up;
+
+    state = new State(20, 20);
+
     return true;
 }
 
 void App::OnEvent(SDL_Event *event) {
-    if ((event->type == SDL_QUIT)) {
+    switch (event->type) {
+    case SDL_QUIT:
         running = false;
+        break;
+    case SDL_KEYDOWN:
+        break;
     }
 }
 
-void App::OnLoop() {}
+void App::OnLoop() {
+    unsigned int currentTime = SDL_GetTicks();
+    if (currentTime > lastMoveTime + 500) {
+        if (state->isOccupied(direction) == 0) {
+            state->move(direction);
+        }
+        lastMoveTime = currentTime;
+    }
+}
 
 void App::OnRender() {
     SDL_RenderClear(renderer);
 
+    int padding = 10;
+    int windowHeight;
+    SDL_GetWindowSize(window, NULL, &windowHeight);
+    int squareSize = (windowHeight - padding * 2) / state->HEIGHT;
+
     SDL_Rect src{0, 0, 1, 1};
 
-    SDL_Rect dst;
-    dst = {200, 20, 80, 80};
-    SDL_RenderCopy(renderer, snakeTexture, &src, &dst);
-    dst = {200, 120, 80, 80};
-    SDL_RenderCopy(renderer, snakeTexture, &src, &dst);
-    dst = {200, 220, 80, 80};
-    SDL_RenderCopy(renderer, appleTexture, &src, &dst);
+    for (int x = 0; x < state->WIDTH; ++x) {
+        for (int y = 0; y < state->HEIGHT; ++y) {
+            SDL_Rect dst;
+            dst.h = squareSize - padding;
+            dst.w = squareSize - padding;
+            dst.x = padding + x * squareSize;
+            dst.y = (state->HEIGHT - y - 1) * squareSize + padding * 2;
+
+            if (state->point(x, y) == state->apple) {
+                SDL_RenderCopy(renderer, appleTexture, &src, &dst);
+            } else if (state->isOccupied(x, y) ||
+                       state->point(x, y) == state->tail) {
+                SDL_RenderCopy(renderer, snakeTexture, &src, &dst);
+            }
+        }
+    }
 
     SDL_RenderPresent(renderer);
 }
@@ -120,6 +159,9 @@ void App::OnCleanup() {
     SDL_DestroyTexture(appleTexture);
     appleTexture = NULL;
 
+    delete state;
+    state = NULL;
+
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     renderer = NULL;
@@ -127,5 +169,7 @@ void App::OnCleanup() {
 
     SDL_Quit();
 }
+
+} // namespace Snake
 
 #endif
