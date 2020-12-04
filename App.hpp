@@ -1,8 +1,6 @@
 #ifndef APP_HPP
 #define APP_HPP
 
-#include <iostream>
-
 #include <SDL2/SDL.h>
 
 #include "State.hpp"
@@ -35,7 +33,6 @@ private:
 
     State *state;
     unsigned int lastMoveTime;
-    Direction direction;
 };
 
 App::App() :
@@ -96,7 +93,6 @@ bool App::OnInit() {
     SDL_FreeSurface(surface);
 
     lastMoveTime = SDL_GetTicks();
-    direction = Direction::north;
 
     state = new State(20, 20);
 
@@ -116,8 +112,8 @@ void App::OnEvent(SDL_Event *event) {
 void App::OnLoop() {
     unsigned int currentTime = SDL_GetTicks();
     if (currentTime > lastMoveTime + 500) {
-        if (state->CanMove(direction) == 0) {
-            state->Move(direction);
+        if (state->CanMove(Direction{})) {
+            state->Move(Direction{});
         }
         lastMoveTime = currentTime;
     }

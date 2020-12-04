@@ -5,32 +5,26 @@
 
 namespace Snake {
 
-enum class Turn { LEFT, RIGHT, NONE };
-
 class Direction {
 public:
-    static constexpr int NORTH = 0, EAST = 1, SOUTH = 2, WEST = 3;
+    static constexpr int NORTH = 0, EAST = 1, SOUTH = 2, WEST = 3,
+                         LEFTTURN = -1, NOTURN = 0, RIGHTTURN = 1;
 
 private:
     int val;
 
+    static constexpr int mod4(int n) { return n < 0 ? (n % 4 + 4) % 4 : n % 4; }
+
 public:
-    constexpr Direction(int value) : val{value % 4} {}
+    constexpr Direction(int value = NORTH) : val{mod4(value)} {}
 
-    int x() { return val % 2 == 0 ? 0 : (val == 0 ? 1 : -1); }
+    int x() const { return val % 2 == 0 ? 0 : (val == 1 ? 1 : -1); }
 
-    int y() { return val % 2 == 0 ? (val == 1 ? 1 : -1) : 0; }
+    int y() const { return val % 2 == 0 ? (val == 0 ? 1 : -1) : 0; }
 
-    int operator+(Turn turn) const {
-        switch (turn) {
-        case Turn::LEFT:
-            return (val + 3) % 4;
-        case Turn::RIGHT:
-            return (val + 1) % 4;
-        default:
-            return val;
-        }
-    }
+    Direction operator+(int turn) const { return Direction(val + turn); }
+
+    void operator+=(int turn) { val = mod4(val + turn); }
 };
 
 class State {
@@ -67,10 +61,9 @@ State::State(int width, int height, int length) :
         walls(SIZE, false) {
     apple = 0;
     head = point((width - 1) / 2, (height - 1) / 2);
-    int tail = point(x(head), y(head) - length + 1);
-    for (int pY = y(head); pY > y(tail); --pY) {
-        occupied[point(x(head), pY)] = pY;
-    }
+    occupied[head] = 1;
+    occupied[head - 1] = 1;
+    occupied[head - 2] = 1;
 }
 
 bool State::CanMove(Direction dir) const {
@@ -90,7 +83,7 @@ int State::Occupied(int x, int y) const {
         return false;
     }
     return occupied[p];
-} // namespace Snake
+}
 
 void State::Move(Direction dir) {
     head = point(head, dir);
@@ -110,12 +103,6 @@ int State::point(int p, Direction dir) const {
 
     if (newX <= 0 || newX >= WIDTH - 1 || newY <= 0 || newY >= HEIGHT - 1)
         return -1;
-
-    Direction newDir{dir};
-
-    newDir = Direction::EAST;
-
-    newDir = newDir + Turn::LEFT;
 
     return point(newX, newY);
 }
