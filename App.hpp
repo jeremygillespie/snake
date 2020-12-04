@@ -96,7 +96,7 @@ bool App::OnInit() {
     SDL_FreeSurface(surface);
 
     lastMoveTime = SDL_GetTicks();
-    direction = Direction::up;
+    direction = Direction::north;
 
     state = new State(20, 20);
 
@@ -116,8 +116,8 @@ void App::OnEvent(SDL_Event *event) {
 void App::OnLoop() {
     unsigned int currentTime = SDL_GetTicks();
     if (currentTime > lastMoveTime + 500) {
-        if (state->isOccupied(direction) == 0) {
-            state->move(direction);
+        if (state->CanMove(direction) == 0) {
+            state->Move(direction);
         }
         lastMoveTime = currentTime;
     }
@@ -143,8 +143,7 @@ void App::OnRender() {
 
             if (state->point(x, y) == state->apple) {
                 SDL_RenderCopy(renderer, appleTexture, &src, &dst);
-            } else if (state->isOccupied(x, y) ||
-                       state->point(x, y) == state->tail) {
+            } else if (state->Occupied(x, y)) {
                 SDL_RenderCopy(renderer, snakeTexture, &src, &dst);
             }
         }
