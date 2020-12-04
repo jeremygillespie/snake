@@ -61,9 +61,9 @@ State::State(int width, int height, int length) :
         walls(SIZE, false) {
     apple = 0;
     head = point((width - 1) / 2, (height - 1) / 2);
-    occupied[head] = 1;
-    occupied[head - 1] = 1;
-    occupied[head - 2] = 1;
+    for (int l = length; l > 0; --l) {
+        occupied[head - length + l] = l;
+    }
 }
 
 bool State::CanMove(Direction dir) const {
