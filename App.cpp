@@ -93,7 +93,7 @@ void App::onEvent(SDL_Event *event) {
 
 void App::onLoop() {
     unsigned int currentTime = SDL_GetTicks();
-    if (currentTime > lastMoveTime + 500) {
+    if (currentTime > lastMoveTime + game.updateTime) {
         if (game.state->CanMove(game.dir)) {
             game.state->Move(game.dir);
         }
@@ -194,6 +194,12 @@ void App::onKey(KeyFunction key) {
     case APPK_WEST:
         onKeyDir(Direction::WEST);
         break;
+    case APPK_FAST:
+        onKeySpeed(true);
+        break;
+    case APPK_SLOW:
+        onKeySpeed(false);
+        break;
     default:
         break;
     }
@@ -201,6 +207,14 @@ void App::onKey(KeyFunction key) {
 
 void App::onKeyDir(Direction dir) {
     game.dir = dir;
+}
+
+void App::onKeySpeed(bool faster) {
+    if (faster) {
+        game.updateTime = (game.updateTime + 1) / 2;
+    } else {
+        game.updateTime *= 2;
+    }
 }
 
 } // namespace Snake

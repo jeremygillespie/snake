@@ -26,7 +26,7 @@ struct Layout {
 struct Game {
     State *state;
     Engine *engine;
-    int speed;
+    int updateTime = 500;
     Direction dir;
 };
 
@@ -75,7 +75,9 @@ public:
       keyMap{{SDLK_w, APPK_NORTH},
              {SDLK_s, APPK_SOUTH},
              {SDLK_a, APPK_WEST},
-             {SDLK_d, APPK_EAST}} {
+             {SDLK_d, APPK_EAST},
+             {SDLK_EQUALS, APPK_FAST},
+             {SDLK_MINUS, APPK_SLOW}} {
     }
 
     int Exectute() {
@@ -113,8 +115,9 @@ private:
 
     void onKey(KeyFunction key);
 
-    void onKeyDir(Direction dir), onKeyMenu(),
-        onKeySpeed(bool faster);
+    void onKeyDir(Direction dir);
+    void onKeyMenu();
+    void onKeySpeed(bool faster);
 }; // namespace Snake
 
 } // namespace Snake
