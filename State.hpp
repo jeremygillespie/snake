@@ -49,6 +49,7 @@ public:
     State(const State &other) = default;
 
 private:
+    std::vector<Direction> direction;
     std::vector<int> occupied;
     std::vector<bool> walls;
 };
