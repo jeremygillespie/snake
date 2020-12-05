@@ -47,9 +47,9 @@ bool App::onInit() {
 
     onResize(900, 600);
 
-    lastMoveTime = SDL_GetTicks();
-
     game.state = new State(20, 20);
+
+    lastMoveTime = SDL_GetTicks();
 
     return true;
 }
@@ -59,9 +59,7 @@ void App::onEvent(SDL_Event *event) {
     case SDL_QUIT:
         appState = QUIT;
         break;
-    case SDL_KEYDOWN:
-        break;
-    case SDL_WINDOWEVENT:
+    case SDL_WINDOWEVENT: {
         switch (event->window.event) {
         case SDL_WINDOWEVENT_RESIZED:
             onResize(event->window.data1, event->window.data2);
@@ -69,13 +67,22 @@ void App::onEvent(SDL_Event *event) {
         }
         break;
     }
+    case SDL_KEYDOWN: {
+        auto itlower = keyMap.lower_bound(event->key.keysym.sym),
+             itupper = keyMap.upper_bound(event->key.keysym.sym);
+        for (auto it = itlower; it != itupper; ++it) {
+            onKey(it->second);
+        }
+        break;
+    }
+    }
 }
 
 void App::onLoop() {
     unsigned int currentTime = SDL_GetTicks();
     if (currentTime > lastMoveTime + 500) {
-        if (game.state->CanMove(Direction{})) {
-            game.state->Move(Direction{});
+        if (game.state->CanMove(game.dir)) {
+            game.state->Move(game.dir);
         }
         lastMoveTime = currentTime;
     }
@@ -148,5 +155,26 @@ void App::onCleanup() {
 
     SDL_Quit();
 }
+
+void App::onKey(KeyFunction key) {
+    switch (key) {
+    case APPK_NORTH:
+        onKeyDir(Direction::NORTH);
+        break;
+    case APPK_SOUTH:
+        onKeyDir(Direction::SOUTH);
+        break;
+    case APPK_EAST:
+        onKeyDir(Direction::EAST);
+        break;
+    case APPK_WEST:
+        onKeyDir(Direction::WEST);
+        break;
+    default:
+        break;
+    }
+}
+
+void App::onKeyDir(Direction dir) { game.dir = dir; }
 
 } // namespace Snake

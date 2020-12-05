@@ -3,6 +3,9 @@
 
 #include <SDL2/SDL.h>
 
+#include <functional>
+#include <map>
+
 #include "Engine.hpp"
 #include "State.hpp"
 
@@ -24,11 +27,21 @@ struct Game {
     State *state;
     Engine *engine;
     int speed;
+    Direction dir;
 };
 
 class App {
 private:
     enum AppState { INIT, MENU, PLAY, PAUSE, QUIT };
+    enum KeyFunction {
+        APPK_NORTH,
+        APPK_SOUTH,
+        APPK_EAST,
+        APPK_WEST,
+        APPK_MENU,
+        APPK_FAST,
+        APPK_SLOW
+    };
 
     AppState appState;
 
@@ -39,6 +52,8 @@ private:
     Layout layout;
     Game game;
 
+    std::multimap<int, KeyFunction> keyMap;
+
     unsigned int lastMoveTime;
 
 public:
@@ -48,7 +63,11 @@ public:
             renderer{},
             textures{},
             layout{},
-            game{} {}
+            game{},
+            keyMap{{SDLK_w, APPK_NORTH},
+                   {SDLK_s, APPK_SOUTH},
+                   {SDLK_a, APPK_WEST},
+                   {SDLK_d, APPK_EAST}} {}
 
     int Exectute() {
         if (onInit() == false) {
@@ -82,7 +101,11 @@ private:
     void onResize(int width, int height);
 
     void onCleanup();
-};
+
+    void onKey(KeyFunction key);
+
+    void onKeyDir(Direction dir), onKeyMenu(), onKeySpeed(bool faster);
+}; // namespace Snake
 
 } // namespace Snake
 
