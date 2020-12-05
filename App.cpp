@@ -34,14 +34,11 @@ bool App::onInit() {
 
     SDL_Surface *surface = SDL_CreateRGBSurface(0, 32, 32, 32, 0, 0, 0, 0);
 
-    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 200, 0));
+    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 190, 0));
     textures.snake = SDL_CreateTextureFromSurface(renderer, surface);
 
-    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 200, 0, 0));
+    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 210, 0, 0));
     textures.apple = SDL_CreateTextureFromSurface(renderer, surface);
-
-    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 50, 50, 50));
-    textures.widget = SDL_CreateTextureFromSurface(renderer, surface);
 
     SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 50, 50, 50));
     textures.board = SDL_CreateTextureFromSurface(renderer, surface);
@@ -87,73 +84,52 @@ void App::onLoop() {
 void App::onRender() {
     SDL_RenderClear(renderer);
 
-    SDL_Rect src{0, 0, 1, 1};
+    SDL_Rect src{0, 0, 1, 1}, dst;
 
     SDL_RenderCopy(renderer, textures.board, &src, &layout.board);
-    SDL_RenderCopy(renderer, textures.widget, &src, &layout.widget1);
-    SDL_RenderCopy(renderer, textures.widget, &src, &layout.widget2);
 
-    // for (int x = 0; x < game.state->WIDTH; ++x) {
-    //     for (int y = 0; y < game.state->HEIGHT; ++y) {
-    //         dst.h = squareSize - padding;
-    //         dst.w = squareSize - padding;
-    //         dst.x = padding + x * squareSize;
-    //         dst.y = (game.state->HEIGHT - y - 1) * squareSize + padding * 2;
+    for (int x = 0; x < game.state->WIDTH; ++x) {
+        for (int y = 0; y < game.state->HEIGHT; ++y) {
+            dst.h = layout.vertSize;
+            dst.w = layout.vertSize;
+            dst.x = x * (layout.vertSize + layout.vertPadding) +
+                    layout.widgetPadding + layout.vertPadding;
+            dst.y = (game.state->HEIGHT - y - 1) *
+                        (layout.vertSize + layout.vertPadding) +
+                    layout.widgetPadding + layout.vertPadding;
 
-    //         if (game.state->point(x, y) == game.state->apple) {
-    //             SDL_RenderCopy(renderer, textures.apple, &src, &dst);
-    //         } else if (game.state->Occupied(x, y)) {
-    //             SDL_RenderCopy(renderer, textures.snake, &src, &dst);
-    //         }
-    //     }
-    // }
+            if (game.state->point(x, y) == game.state->apple) {
+                SDL_RenderCopy(renderer, textures.apple, &src, &dst);
+            } else if (game.state->Occupied(x, y)) {
+                SDL_RenderCopy(renderer, textures.snake, &src, &dst);
+            }
+        }
+    }
 
     SDL_RenderPresent(renderer);
 }
 
 void App::onResize(int width, int height) {
-    int widgetSize, boardMaxWidth, boardMaxHeight;
 
-    if (width > height) {
-        widgetSize = (height - 3 * layout.widgetPadding) / 2;
-        boardMaxWidth = width - 3 * layout.widgetPadding - widgetSize;
-        boardMaxHeight = height - layout.widgetPadding * 2;
+    int maxWidth = width - layout.widgetPadding * 2;
+    int maxHeight = height - layout.widgetPadding * 2;
 
-        layout.board.w = boardMaxWidth;
-        layout.board.h = boardMaxHeight;
-        layout.board.x = widgetSize + 2 * layout.widgetPadding;
-        layout.board.y = layout.widgetPadding;
-
-        layout.widget1.w = widgetSize;
-        layout.widget1.h = widgetSize;
-        layout.widget1.x = layout.widgetPadding;
-        layout.widget1.y = layout.widgetPadding;
-
-        layout.widget2.w = widgetSize;
-        layout.widget2.h = widgetSize;
-        layout.widget2.x = layout.widgetPadding;
-        layout.widget2.y = widgetSize + 2 * layout.widgetPadding;
-
+    if (maxWidth / layout.widthVerts < maxHeight / layout.heightVerts) {
+        layout.vertSize =
+            (maxWidth - layout.vertPadding * (layout.widthVerts + 1)) /
+            layout.widthVerts;
     } else {
-        widgetSize = (width - 3 * layout.widgetPadding) / 2;
-        boardMaxWidth = width - layout.widgetPadding * 2;
-        boardMaxHeight = height - 3 * layout.widgetPadding - widgetSize;
-
-        layout.board.w = boardMaxWidth;
-        layout.board.h = boardMaxHeight;
-        layout.board.x = layout.widgetPadding;
-        layout.board.y = layout.widgetPadding;
-
-        layout.widget1.w = widgetSize;
-        layout.widget1.h = widgetSize;
-        layout.widget1.x = layout.widgetPadding;
-        layout.widget1.y = boardMaxHeight + 2 * layout.widgetPadding;
-
-        layout.widget2.w = widgetSize;
-        layout.widget2.h = widgetSize;
-        layout.widget2.x = widgetSize + 2 * layout.widgetPadding;
-        layout.widget2.y = boardMaxHeight + 2 * layout.widgetPadding;
+        layout.vertSize =
+            (maxHeight - layout.vertPadding * (layout.heightVerts + 1)) /
+            layout.heightVerts;
     }
+
+    layout.board.w = layout.vertSize * layout.widthVerts +
+                     layout.vertPadding * (layout.widthVerts + 1);
+    layout.board.h = layout.vertSize * layout.heightVerts +
+                     layout.vertPadding * (layout.heightVerts + 1);
+    layout.board.x = layout.widgetPadding;
+    layout.board.y = layout.widgetPadding;
 }
 
 void App::onCleanup() {

@@ -9,20 +9,21 @@
 namespace Snake {
 
 struct Textures {
-    SDL_Texture *snake, *apple, *board, *widget, *button;
+    SDL_Texture *snake, *apple, *board, *button;
 };
 
 struct Layout {
-    static constexpr float squarePadding = 0.1f;
+    static constexpr int vertPadding = 5;
     static constexpr int widgetPadding = 10;
 
-    SDL_Rect board, widget1, widget2;
-    int boardWidthVerts, boardHeightVerts, vertSize;
+    SDL_Rect board;
+    int widthVerts = 20, heightVerts = 20, vertSize;
 };
 
 struct Game {
     State *state;
     Engine *engine;
+    int speed;
 };
 
 class App {
