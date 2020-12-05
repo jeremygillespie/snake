@@ -32,8 +32,16 @@ struct Game {
 
 class App {
 private:
-    enum AppState { INIT, MENU, PLAY, PAUSE, QUIT };
-    enum KeyFunction {
+    enum AppState
+    {
+        INIT,
+        MENU,
+        PLAY,
+        PAUSE,
+        QUIT
+    };
+    enum KeyFunction
+    {
         APPK_NORTH,
         APPK_SOUTH,
         APPK_EAST,
@@ -58,16 +66,17 @@ private:
 
 public:
     App() :
-            appState{INIT},
-            window{},
-            renderer{},
-            textures{},
-            layout{},
-            game{},
-            keyMap{{SDLK_w, APPK_NORTH},
-                   {SDLK_s, APPK_SOUTH},
-                   {SDLK_a, APPK_WEST},
-                   {SDLK_d, APPK_EAST}} {}
+      appState{INIT},
+      window{},
+      renderer{},
+      textures{},
+      layout{},
+      game{},
+      keyMap{{SDLK_w, APPK_NORTH},
+             {SDLK_s, APPK_SOUTH},
+             {SDLK_a, APPK_WEST},
+             {SDLK_d, APPK_EAST}} {
+    }
 
     int Exectute() {
         if (onInit() == false) {
@@ -104,7 +113,8 @@ private:
 
     void onKey(KeyFunction key);
 
-    void onKeyDir(Direction dir), onKeyMenu(), onKeySpeed(bool faster);
+    void onKeyDir(Direction dir), onKeyMenu(),
+        onKeySpeed(bool faster);
 }; // namespace Snake
 
 } // namespace Snake
