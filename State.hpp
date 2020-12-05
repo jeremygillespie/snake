@@ -88,7 +88,7 @@ int State::Occupied(int x, int y) const {
 void State::Move(Direction dir) {
     head = point(head, dir);
     if (head != -1) {
-        occupied[head] = 1;
+        occupied[head] = length;
     }
 }
 
@@ -101,7 +101,7 @@ int State::point(int p, Direction dir) const {
     int newX = x(p) + dir.x();
     int newY = y(p) + dir.y();
 
-    if (newX <= 0 || newX >= WIDTH - 1 || newY <= 0 || newY >= HEIGHT - 1)
+    if (newX < 0 || newX >= WIDTH || newY < 0 || newY >= HEIGHT)
         return -1;
 
     return point(newX, newY);
