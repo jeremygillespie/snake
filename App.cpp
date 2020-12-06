@@ -1,6 +1,8 @@
 #include <iostream>
 using std::cout;
 
+#include <cmath>
+
 #include "App.hpp"
 
 using namespace Snake;
@@ -125,7 +127,16 @@ void App::onRender() {
                 game.state->apple) {
                 SDL_RenderCopy(renderer, textures.apple,
                                &src, &dst);
-            } else if (game.state->Occupied(x, y)) {
+            } else if (game.state->point(x, y) ==
+                       game.state->head) {
+                SDL_RenderCopy(renderer, textures.snake,
+                               &src, &dst);
+            } else if (game.state->Occupied(x, y) >= 1) {
+                Direction dir = game.state->Dir(x, y);
+                SDL_RenderCopy(renderer, textures.snake,
+                               &src, &dst);
+                dst.x += dir.x() * layout.vertPadding;
+                dst.y -= dir.y() * layout.vertPadding;
                 SDL_RenderCopy(renderer, textures.snake,
                                &src, &dst);
             }

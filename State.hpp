@@ -51,6 +51,7 @@ public:
     void Move(Direction dir);
 
     int Occupied(int x, int y) const;
+    Direction Dir(int x, int y) const;
 
     const int WIDTH, HEIGHT, SIZE;
     int head, apple, length;
@@ -72,6 +73,8 @@ State::State(int width, int height, int length) :
   WIDTH{width},
   HEIGHT{height},
   SIZE{width * height},
+  length{length},
+  direction(SIZE),
   occupied(SIZE, 0),
   walls(SIZE, false) {
     apple = 0;
@@ -100,9 +103,20 @@ int State::Occupied(int x, int y) const {
     return occupied[p];
 }
 
+Direction State::Dir(int x, int y) const {
+    return direction[point(x, y)];
+}
+
 void State::Move(Direction dir) {
+    direction[head] = dir;
     head = point(head, dir);
     if (head != -1) {
+        if (head == apple) {
+            ++length;
+            // new random apple
+        } else {
+            // decrement tail
+        }
         occupied[head] = length;
     }
 }
