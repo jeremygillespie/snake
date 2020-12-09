@@ -3,8 +3,8 @@ Snake is a game where you play as a mother duck in a rectangular grassy field of
 
 ## Features:
 * adjust board size
-* select engine/mode
-* mode-dependent options
+* select engine
+* add walls
 
 ## Strategy:
 A vertex is a point that the snake can occupy. A corner is any set of four vertices adjacent vertices (a 2x2 square), or two vertices on the exterior of the graph. A corner starts unassigned and must be assigned L or R as long as one of its vertices is occupied.
@@ -24,6 +24,11 @@ A vertex is a point that the snake can occupy. A corner is any set of four verti
 This technique, in combination with a running total of moves(N, S, E, W) and turns(L, R) shall fulfill three tasks: maintain a cyclical path, detect loops/spirals/inaccessible vertices, and converge to a Hamiltonian path.
 
 ## To Do
-- [x] variable size state
-- [ ] playable graphics
-- [ ] search
+- [x] state
+- [x] graphics
+- [x] gameplay
+- [ ] menu
+- [ ] restart
+- [ ] random seed
+- [ ] random initial apple
+- [ ] engine
