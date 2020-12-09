@@ -114,8 +114,14 @@ void State::Move(Direction dir) {
         if (head == apple) {
             ++length;
             // new random apple
+            apple = -1;
         } else {
             // decrement tail
+            for (auto i = occupied.begin();
+                 i != occupied.end(); ++i) {
+                if (*i > 0)
+                    --(*i);
+            }
         }
         occupied[head] = length;
     }

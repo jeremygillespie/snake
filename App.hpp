@@ -37,6 +37,7 @@ private:
         INIT,
         MENU,
         PLAY,
+        DEATH,
         PAUSE,
         QUIT
     };
@@ -84,6 +85,8 @@ public:
         if (onInit() == false) {
             return -1;
         }
+
+        appState = PLAY;
 
         SDL_Event event;
 

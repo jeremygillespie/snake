@@ -94,12 +94,22 @@ void App::onEvent(SDL_Event *event) {
 }
 
 void App::onLoop() {
-    unsigned int currentTime = SDL_GetTicks();
-    if (currentTime > lastMoveTime + game.updateTime) {
-        if (game.state->CanMove(game.dir)) {
-            game.state->Move(game.dir);
+    switch (appState) {
+    case PLAY: {
+        unsigned int currentTime = SDL_GetTicks();
+        if (currentTime > lastMoveTime + game.updateTime) {
+            if (game.state->CanMove(game.dir)) {
+                game.state->Move(game.dir);
+            } else {
+                appState = DEATH;
+                cout << "You lose!\n";
+            }
+            lastMoveTime = currentTime;
         }
-        lastMoveTime = currentTime;
+        break;
+    }
+    default:
+        break;
     }
 }
 
