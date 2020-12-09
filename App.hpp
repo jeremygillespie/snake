@@ -16,11 +16,11 @@ struct Textures {
 };
 
 struct Layout {
-    static constexpr int vertPadding = 5;
     static constexpr int widgetPadding = 10;
 
     SDL_Rect board;
-    int widthVerts = 20, heightVerts = 20, vertSize;
+    int widthVerts = 20, heightVerts = 20, vertSize,
+        vertPadding = 5;
 };
 
 struct Game {
@@ -37,7 +37,7 @@ private:
         INIT,
         MENU,
         PLAY,
-        DEATH,
+        END,
         QUIT
     };
     enum KeyFunction
@@ -125,7 +125,6 @@ private:
     void onKey(KeyFunction key);
 
     void onKeyDir(Direction dir);
-    void onKeyMenu();
     void onKeySpeed(bool faster);
 
     void start();
