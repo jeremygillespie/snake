@@ -196,10 +196,7 @@ void App::onKeyDir(Direction dir) {
         break;
     case PLAY:
         if (game.engine == NULL) {
-            Direction current =
-                game.state->direction()[game.state->head];
-            if (dir != current + Direction::UTURN)
-                game.dir = dir;
+            game.dir = dir;
         }
         break;
     default:
@@ -223,11 +220,18 @@ void App::updateGame() {
         if (game.state->length == game.state->SIZE) {
             appState = END;
             cout << "You win!\n";
-        } else if (game.state->CanMove(game.dir)) {
-            game.state->Move(game.dir);
         } else {
-            appState = END;
-            cout << "You lose!\n";
+            Direction current =
+                game.state->direction()[game.state->head];
+            if (game.dir == current + Direction::UTURN) {
+                game.dir = current;
+            }
+            if (game.state->CanMove(game.dir)) {
+                game.state->Move(game.dir);
+            } else {
+                appState = END;
+                cout << "You lose!\n";
+            }
         }
         lastMoveTime = currentTime;
 
