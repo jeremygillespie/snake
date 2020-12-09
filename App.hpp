@@ -24,8 +24,8 @@ struct Layout {
 };
 
 struct Game {
-    State *state;
     Engine *engine;
+    State *state;
     int updateTime = 500;
     Direction dir;
 };
@@ -38,7 +38,6 @@ private:
         MENU,
         PLAY,
         DEATH,
-        PAUSE,
         QUIT
     };
     enum KeyFunction
@@ -50,6 +49,11 @@ private:
         APPK_MENU,
         APPK_FAST,
         APPK_SLOW
+    };
+    enum EngineType
+    {
+        HUMAN,
+        MANHATTAN
     };
 
     AppState appState;
@@ -86,7 +90,7 @@ public:
             return -1;
         }
 
-        appState = PLAY;
+        appState = MENU;
 
         SDL_Event event;
 

@@ -95,6 +95,10 @@ void App::onEvent(SDL_Event *event) {
 
 void App::onLoop() {
     switch (appState) {
+    case MENU: {
+        appState = PLAY;
+        break;
+    }
     case PLAY: {
         unsigned int currentTime = SDL_GetTicks();
         if (currentTime > lastMoveTime + game.updateTime) {
@@ -106,6 +110,9 @@ void App::onLoop() {
             }
             lastMoveTime = currentTime;
         }
+        break;
+    }
+    case DEATH: {
         break;
     }
     default:
@@ -189,9 +196,7 @@ void App::onCleanup() {
     SDL_DestroyTexture(textures.apple);
     textures = Textures{};
 
-    delete game.state;
-    delete game.engine;
-    game = Game{};
+    // might need to deallocate game.engine and game.state
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -227,7 +232,14 @@ void App::onKey(KeyFunction key) {
 }
 
 void App::onKeyDir(Direction dir) {
-    game.dir = dir;
+    switch (appState) {
+    case MENU:
+    case PLAY:
+        if (game.engine == NULL)
+            game.dir = dir;
+    default:
+        break;
+    }
 }
 
 void App::onKeySpeed(bool faster) {

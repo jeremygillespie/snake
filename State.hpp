@@ -1,6 +1,7 @@
 #ifndef STATE_HPP
 #define STATE_HPP
 
+#include <random>
 #include <vector>
 
 namespace Snake {
@@ -67,6 +68,7 @@ private:
     std::vector<Direction> direction;
     std::vector<int> occupied;
     std::vector<bool> walls;
+    std::default_random_engine randomEngine;
 };
 
 State::State(int width, int height, int length) :
@@ -76,7 +78,8 @@ State::State(int width, int height, int length) :
   length{length},
   direction(SIZE),
   occupied(SIZE, 0),
-  walls(SIZE, false) {
+  walls(SIZE, false),
+  randomEngine{} {
     apple = 0;
     head = point((width - 1) / 2, (height - 1) / 2);
     for (int l = length; l > 0; --l) {
@@ -89,17 +92,14 @@ bool State::CanMove(Direction dir) const {
     if (p == -1) {
         return false;
     }
-    if (walls[p]) {
+    if (walls[p] || occupied[p]) {
         return false;
     }
-    return occupied[p] <= 1;
+    return true;
 }
 
 int State::Occupied(int x, int y) const {
     int p = point(x, y);
-    if (walls[p]) {
-        return false;
-    }
     return occupied[p];
 }
 
@@ -111,10 +111,19 @@ void State::Move(Direction dir) {
     direction[head] = dir;
     head = point(head, dir);
     if (head != -1) {
+        occupied[head] = length + 1;
         if (head == apple) {
             ++length;
-            // new random apple
             apple = -1;
+            if (length < SIZE) {
+                int r = std::uniform_int_distribution<>(
+                    1, SIZE - length + 1)(randomEngine);
+                for (int i = 0; i < r; ++i) {
+                    ++apple;
+                    while (occupied[apple] || walls[apple])
+                        ++apple;
+                }
+            }
         } else {
             // decrement tail
             for (auto i = occupied.begin();
@@ -123,7 +132,6 @@ void State::Move(Direction dir) {
                     --(*i);
             }
         }
-        occupied[head] = length;
     }
 }
 

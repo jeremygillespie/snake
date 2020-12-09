@@ -7,7 +7,8 @@ namespace Snake {
 
 class Engine {
 public:
-    Engine();
+    Engine(State state);
+    virtual Direction nextMove() = 0;
 };
 
 } // namespace Snake
