@@ -96,23 +96,11 @@ void App::onEvent(SDL_Event *event) {
 void App::onLoop() {
     switch (appState) {
     case MENU: {
-        appState = PLAY;
+        updateMenu();
         break;
     }
     case PLAY: {
-        unsigned int currentTime = SDL_GetTicks();
-        if (currentTime > lastMoveTime + game.updateTime) {
-            if (game.state->CanMove(game.dir)) {
-                game.state->Move(game.dir);
-            } else {
-                appState = DEATH;
-                cout << "You lose!\n";
-            }
-            lastMoveTime = currentTime;
-        }
-        break;
-    }
-    case DEATH: {
+        updateGame();
         break;
     }
     default:
@@ -122,44 +110,17 @@ void App::onLoop() {
 
 void App::onRender() {
     SDL_RenderClear(renderer);
-
-    SDL_Rect src{0, 0, 1, 1}, dst;
-
-    SDL_RenderCopy(renderer, textures.board, &src,
-                   &layout.board);
-
-    for (int x = 0; x < game.state->WIDTH; ++x) {
-        for (int y = 0; y < game.state->HEIGHT; ++y) {
-            dst.h = layout.vertSize;
-            dst.w = layout.vertSize;
-            dst.x =
-                x * (layout.vertSize + layout.vertPadding) +
-                layout.widgetPadding + layout.vertPadding;
-            dst.y =
-                (game.state->HEIGHT - y - 1) *
-                    (layout.vertSize + layout.vertPadding) +
-                layout.widgetPadding + layout.vertPadding;
-
-            if (game.state->point(x, y) ==
-                game.state->apple) {
-                SDL_RenderCopy(renderer, textures.apple,
-                               &src, &dst);
-            } else if (game.state->point(x, y) ==
-                       game.state->head) {
-                SDL_RenderCopy(renderer, textures.snake,
-                               &src, &dst);
-            } else if (game.state->Occupied(x, y) >= 1) {
-                Direction dir = game.state->Dir(x, y);
-                SDL_RenderCopy(renderer, textures.snake,
-                               &src, &dst);
-                dst.x += dir.x() * layout.vertPadding;
-                dst.y -= dir.y() * layout.vertPadding;
-                SDL_RenderCopy(renderer, textures.snake,
-                               &src, &dst);
-            }
-        }
+    switch (appState) {
+    case MENU:
+        renderMenu();
+        break;
+    case PLAY:
+        renderGame();
+        break;
+    default:
+        renderGame();
+        break;
     }
-
     SDL_RenderPresent(renderer);
 }
 
@@ -226,6 +187,9 @@ void App::onKey(KeyFunction key) {
     case APPK_SLOW:
         onKeySpeed(false);
         break;
+    case APPK_START:
+        start();
+        break;
     default:
         break;
     }
@@ -234,20 +198,88 @@ void App::onKey(KeyFunction key) {
 void App::onKeyDir(Direction dir) {
     switch (appState) {
     case MENU:
+        break;
     case PLAY:
         if (game.engine == NULL)
             game.dir = dir;
+        break;
     default:
         break;
     }
 }
 
 void App::onKeySpeed(bool faster) {
-    if (faster) {
-        game.updateTime = (game.updateTime + 1) / 2;
-    } else {
-        game.updateTime *= 2;
+    if (appState == PLAY) {
+        if (faster) {
+            game.updateTime = (game.updateTime + 1) / 2;
+        } else {
+            game.updateTime *= 2;
+        }
     }
+}
+
+void App::updateGame() {
+    unsigned int currentTime = SDL_GetTicks();
+    if (currentTime > lastMoveTime + game.updateTime) {
+        if (game.state->CanMove(game.dir)) {
+            game.state->Move(game.dir);
+        } else {
+            appState = DEATH;
+            cout << "You lose!\n";
+        }
+        lastMoveTime = currentTime;
+    }
+}
+
+void App::renderGame() {
+
+    SDL_Rect src{0, 0, 1, 1}, dst;
+
+    SDL_RenderCopy(renderer, textures.board, &src,
+                   &layout.board);
+
+    for (int x = 0; x < game.state->WIDTH; ++x) {
+        for (int y = 0; y < game.state->HEIGHT; ++y) {
+            dst.h = layout.vertSize;
+            dst.w = layout.vertSize;
+            dst.x =
+                x * (layout.vertSize + layout.vertPadding) +
+                layout.widgetPadding + layout.vertPadding;
+            dst.y =
+                (game.state->HEIGHT - y - 1) *
+                    (layout.vertSize + layout.vertPadding) +
+                layout.widgetPadding + layout.vertPadding;
+
+            if (game.state->point(x, y) ==
+                game.state->apple) {
+                SDL_RenderCopy(renderer, textures.apple,
+                               &src, &dst);
+            } else if (game.state->point(x, y) ==
+                       game.state->head) {
+                SDL_RenderCopy(renderer, textures.snake,
+                               &src, &dst);
+            } else if (game.state->Occupied(x, y) >= 1) {
+                Direction dir = game.state->Dir(x, y);
+                SDL_RenderCopy(renderer, textures.snake,
+                               &src, &dst);
+                dst.x += dir.x() * layout.vertPadding;
+                dst.y -= dir.y() * layout.vertPadding;
+                SDL_RenderCopy(renderer, textures.snake,
+                               &src, &dst);
+            }
+        }
+    }
+}
+void App::renderMenu() {
+    renderGame();
+}
+
+void App::updateMenu() {
+}
+
+void App::start() {
+    if (appState == MENU)
+        appState = PLAY;
 }
 
 } // namespace Snake

@@ -42,6 +42,7 @@ private:
     };
     enum KeyFunction
     {
+        APPK_START,
         APPK_NORTH,
         APPK_SOUTH,
         APPK_EAST,
@@ -77,7 +78,8 @@ public:
       textures{},
       layout{},
       game{},
-      keyMap{{SDLK_w, APPK_NORTH},
+      keyMap{{SDLK_RETURN, APPK_START},
+             {SDLK_w, APPK_NORTH},
              {SDLK_s, APPK_SOUTH},
              {SDLK_a, APPK_WEST},
              {SDLK_d, APPK_EAST},
@@ -125,6 +127,13 @@ private:
     void onKeyDir(Direction dir);
     void onKeyMenu();
     void onKeySpeed(bool faster);
+
+    void start();
+
+    void updateGame();
+    void updateMenu();
+    void renderGame();
+    void renderMenu();
 }; // namespace Snake
 
 } // namespace Snake
