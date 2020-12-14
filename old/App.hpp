@@ -6,7 +6,6 @@
 #include <functional>
 #include <map>
 
-#include "Engine.hpp"
 #include "State.hpp"
 
 namespace Snake {
@@ -19,12 +18,10 @@ struct Layout {
     static constexpr int widgetPadding = 10;
 
     SDL_Rect board;
-    int widthVerts = 20, heightVerts = 20, vertSize,
-        vertPadding = 5;
+    int widthVerts = 20, heightVerts = 20, vertSize, vertPadding = 5;
 };
 
 struct Game {
-    Engine *engine;
     State *state;
     int updateTime = 500;
     Direction dir;
@@ -78,12 +75,9 @@ public:
       textures{},
       layout{},
       game{},
-      keyMap{{SDLK_RETURN, APPK_START},
-             {SDLK_w, APPK_NORTH},
-             {SDLK_s, APPK_SOUTH},
-             {SDLK_a, APPK_WEST},
-             {SDLK_d, APPK_EAST},
-             {SDLK_EQUALS, APPK_FAST},
+      keyMap{{SDLK_RETURN, APPK_START}, {SDLK_w, APPK_NORTH},
+             {SDLK_s, APPK_SOUTH},      {SDLK_a, APPK_WEST},
+             {SDLK_d, APPK_EAST},       {SDLK_EQUALS, APPK_FAST},
              {SDLK_MINUS, APPK_SLOW}} {
     }
 
