@@ -1,9 +1,7 @@
 #include "app.hpp"
 
-using namespace snake;
-
 int main() {
-    app a = {};
+    snake::app app = {};
 
-    return a.execute();
+    return app.execute();
 }

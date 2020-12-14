@@ -5,10 +5,15 @@
 
 #include <SDL2/SDL.h>
 
+#include "graph.hpp"
+
 namespace snake {
 
 class app {
+
 public:
+    graph g;
+
     app() {
     }
 
