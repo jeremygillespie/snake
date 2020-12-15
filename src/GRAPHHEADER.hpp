@@ -54,6 +54,10 @@ public:
       occupied(size, false),
       walls(size, false),
       Directions(size, {}) {}
+
+    int point(int x, int y) const {
+        return (x * height + y) % size;
+    }
 };
 
 } // namespace snake
