@@ -46,6 +46,16 @@ public:
     std::vector<bool> walls;
     std::vector<Direction> Directions;
 
+    int point(int x, int y) const {
+        return (x * height + y) % size;
+    }
+
+    bool canMove(Direction dir) {
+        return true;
+    }
+
+    void move(Direction dir) {}
+
     Graph(int width, int height, int x, int y, int length) :
       width{width},
       height{height},
@@ -54,10 +64,6 @@ public:
       occupied(size, false),
       walls(size, false),
       Directions(size, {}) {}
-
-    int point(int x, int y) const {
-        return (x * height + y) % size;
-    }
 };
 
 } // namespace snake
