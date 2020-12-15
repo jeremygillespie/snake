@@ -8,10 +8,8 @@ namespace Snake {
 
 class Direction {
 public:
-    static constexpr int NORTH = 0, EAST = 1, SOUTH = 2,
-                         WEST = 3, LEFTTURN = -1,
-                         NOTURN = 0, RIGHTTURN = 1,
-                         UTURN = 2;
+    static constexpr int NORTH = 0, EAST = 1, SOUTH = 2, WEST = 3,
+                         LEFTTURN = -1, NOTURN = 0, RIGHTTURN = 1, UTURN = 2;
 
 private:
     int val;
@@ -130,8 +128,8 @@ void State::Move(Direction dir) {
             ++length;
             apple = -1;
             if (length < SIZE) {
-                int r = std::uniform_int_distribution<>(
-                    1, SIZE - length)(randomEngine);
+                int r = std::uniform_int_distribution<>(1, SIZE - length)(
+                    randomEngine);
                 for (int i = 0; i < r; ++i) {
                     ++apple;
                     while (occupied_[apple] || wall_[apple])
@@ -140,8 +138,7 @@ void State::Move(Direction dir) {
             }
         } else {
             // decrement tail
-            for (auto i = occupied_.begin();
-                 i != occupied_.end(); ++i) {
+            for (auto i = occupied_.begin(); i != occupied_.end(); ++i) {
                 if (*i > 0)
                     --(*i);
             }
@@ -160,8 +157,7 @@ int State::point(int p, Direction dir) const {
     int newX = x(p) + dir.x();
     int newY = y(p) + dir.y();
 
-    if (newX < 0 || newX >= WIDTH || newY < 0 ||
-        newY >= HEIGHT)
+    if (newX < 0 || newX >= WIDTH || newY < 0 || newY >= HEIGHT)
         return -1;
 
     return point(newX, newY);

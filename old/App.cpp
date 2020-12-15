@@ -20,40 +20,30 @@ bool App::onInit() {
     }
 
     window = SDL_CreateWindow(
-        "Snake", SDL_WINDOWPOS_UNDEFINED,
-        SDL_WINDOWPOS_UNDEFINED, 900, 600,
+        "Snake", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 900, 600,
         SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     if (window == NULL) {
         return false;
     }
 
-    renderer =
-        SDL_CreateRenderer(window, -1,
-                           SDL_RENDERER_ACCELERATED |
-                               SDL_RENDERER_PRESENTVSYNC);
+    renderer = SDL_CreateRenderer(
+        window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (renderer == NULL) {
         return false;
     }
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
 
-    SDL_Surface *surface =
-        SDL_CreateRGBSurface(0, 32, 32, 32, 0, 0, 0, 0);
+    SDL_Surface *surface = SDL_CreateRGBSurface(0, 32, 32, 32, 0, 0, 0, 0);
 
-    SDL_FillRect(surface, NULL,
-                 SDL_MapRGB(surface->format, 0, 190, 0));
-    textures.snake =
-        SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 190, 0));
+    textures.snake = SDL_CreateTextureFromSurface(renderer, surface);
 
-    SDL_FillRect(surface, NULL,
-                 SDL_MapRGB(surface->format, 210, 0, 0));
-    textures.apple =
-        SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 210, 0, 0));
+    textures.apple = SDL_CreateTextureFromSurface(renderer, surface);
 
-    SDL_FillRect(surface, NULL,
-                 SDL_MapRGB(surface->format, 50, 50, 50));
-    textures.board =
-        SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 50, 50, 50));
+    textures.board = SDL_CreateTextureFromSurface(renderer, surface);
 
     SDL_FreeSurface(surface);
 
@@ -76,17 +66,14 @@ void App::onEvent(SDL_Event *event) {
     case SDL_WINDOWEVENT: {
         switch (event->window.event) {
         case SDL_WINDOWEVENT_RESIZED:
-            onResize(event->window.data1,
-                     event->window.data2);
+            onResize(event->window.data1, event->window.data2);
             break;
         }
         break;
     }
     case SDL_KEYDOWN: {
-        auto itlower =
-                 keyMap.lower_bound(event->key.keysym.sym),
-             itupper =
-                 keyMap.upper_bound(event->key.keysym.sym);
+        auto itlower = keyMap.lower_bound(event->key.keysym.sym),
+             itupper = keyMap.upper_bound(event->key.keysym.sym);
         for (auto it = itlower; it != itupper; ++it) {
             onKey(it->second);
         }
@@ -124,25 +111,20 @@ void App::onResize(int width, int height) {
     int maxWidth = width - layout.widgetPadding * 2;
     int maxHeight = height - layout.widgetPadding * 2;
 
-    if (maxWidth / layout.widthVerts <
-        maxHeight / layout.heightVerts) {
+    if (maxWidth / layout.widthVerts < maxHeight / layout.heightVerts) {
         layout.vertSize =
-            (maxWidth -
-             layout.vertPadding * (layout.widthVerts + 1)) /
+            (maxWidth - layout.vertPadding * (layout.widthVerts + 1)) /
             layout.widthVerts;
     } else {
         layout.vertSize =
-            (maxHeight - layout.vertPadding *
-                             (layout.heightVerts + 1)) /
+            (maxHeight - layout.vertPadding * (layout.heightVerts + 1)) /
             layout.heightVerts;
     }
 
-    layout.board.w =
-        layout.vertSize * layout.widthVerts +
-        layout.vertPadding * (layout.widthVerts + 1);
-    layout.board.h =
-        layout.vertSize * layout.heightVerts +
-        layout.vertPadding * (layout.heightVerts + 1);
+    layout.board.w = layout.vertSize * layout.widthVerts +
+                     layout.vertPadding * (layout.widthVerts + 1);
+    layout.board.h = layout.vertSize * layout.heightVerts +
+                     layout.vertPadding * (layout.heightVerts + 1);
     layout.board.x = layout.widgetPadding;
     layout.board.y = layout.widgetPadding;
 }
@@ -221,8 +203,7 @@ void App::updateGame() {
             appState = END;
             cout << "You win!\n";
         } else {
-            Direction current =
-                game.state->direction()[game.state->head];
+            Direction current = game.state->direction()[game.state->head];
             if (game.dir == current + Direction::UTURN) {
                 game.dir = current;
             }
@@ -248,42 +229,29 @@ void App::renderGame() {
 
     SDL_Rect src{0, 0, 1, 1}, dst;
 
-    SDL_RenderCopy(renderer, textures.board, &src,
-                   &layout.board);
+    SDL_RenderCopy(renderer, textures.board, &src, &layout.board);
 
     for (int x = 0; x < game.state->WIDTH; ++x) {
         for (int y = 0; y < game.state->HEIGHT; ++y) {
             dst.h = layout.vertSize;
             dst.w = layout.vertSize;
-            dst.x =
-                x * (layout.vertSize + layout.vertPadding) +
-                layout.widgetPadding + layout.vertPadding;
-            dst.y =
-                (game.state->HEIGHT - y - 1) *
-                    (layout.vertSize + layout.vertPadding) +
-                layout.widgetPadding + layout.vertPadding;
+            dst.x = x * (layout.vertSize + layout.vertPadding) +
+                    layout.widgetPadding + layout.vertPadding;
+            dst.y = (game.state->HEIGHT - y - 1) *
+                        (layout.vertSize + layout.vertPadding) +
+                    layout.widgetPadding + layout.vertPadding;
 
-            if (game.state->point(x, y) ==
-                game.state->apple) {
-                SDL_RenderCopy(renderer, textures.apple,
-                               &src, &dst);
-            } else if (game.state->point(x, y) ==
-                       game.state->head) {
-                SDL_RenderCopy(renderer, textures.snake,
-                               &src, &dst);
-            } else if (game.state
-                           ->occupied()[game.state->point(
-                               x, y)] >= 1) {
+            if (game.state->point(x, y) == game.state->apple) {
+                SDL_RenderCopy(renderer, textures.apple, &src, &dst);
+            } else if (game.state->point(x, y) == game.state->head) {
+                SDL_RenderCopy(renderer, textures.snake, &src, &dst);
+            } else if (game.state->occupied()[game.state->point(x, y)] >= 1) {
                 Direction dir =
-                    game.state
-                        ->direction()[game.state->point(x,
-                                                        y)];
-                SDL_RenderCopy(renderer, textures.snake,
-                               &src, &dst);
+                    game.state->direction()[game.state->point(x, y)];
+                SDL_RenderCopy(renderer, textures.snake, &src, &dst);
                 dst.x += dir.x() * layout.vertPadding;
                 dst.y -= dir.y() * layout.vertPadding;
-                SDL_RenderCopy(renderer, textures.snake,
-                               &src, &dst);
+                SDL_RenderCopy(renderer, textures.snake, &src, &dst);
             }
         }
     }
