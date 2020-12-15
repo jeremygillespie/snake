@@ -1,8 +1,6 @@
 #ifndef SNAKE_DISPLAY_HPP
 #define SNAKE_DISPLAY_HPP
 
-#include <iostream>
-
 #include <SDL.h>
 
 #include "Engine.hpp"
@@ -10,8 +8,15 @@
 
 namespace snake {
 
-class Display {
+struct Textures {
+    SDL_Texture *snake, *apple, *board, *button;
+};
 
+struct Layout {
+    int padding, size;
+};
+
+class Display {
 public:
     Display(Engine *engine) {}
 
@@ -19,16 +24,13 @@ public:
         if (initialize() == -1)
             return -1;
 
-        while (state == wall) {
-            update_wall();
-        }
+        SDL_Event event;
 
-        while (state == play) {
-            update_play();
-        }
-
-        while (state == end) {
-            render();
+        while (state != quit) {
+            while (SDL_PollEvent(&event)) {
+                on_event(&event);
+            }
+            update();
         }
 
         terminate();
@@ -36,8 +38,6 @@ public:
     }
 
 private:
-    Engine *engine;
-
     enum State
     {
         wall,
@@ -46,15 +46,27 @@ private:
         quit
     };
 
+    Engine *engine;
+
+    SDL_Window *window;
+    SDL_Renderer *renderer;
+
+    Textures textures;
+    Layout layout;
+
     State state = wall;
 
     int initialize();
 
+    void update();
+    void on_event(SDL_Event *event);
+
     void update_wall();
-
     void update_play();
-
     void render();
+
+    void on_resize();
+    void on_click();
 
     void terminate();
 };

@@ -9,16 +9,11 @@ class Engine {
 public:
     Engine(const Graph &graph) : graph{graph} {}
 
-    Graph current_graph() const {
-        return graph;
-    }
+    Graph graph;
 
-    void set_wall(int x, int y);
+    virtual void initialize() {}
 
     virtual void nextMove(Direction dir) {}
-
-private:
-    Graph graph;
 };
 
 } // namespace snake
