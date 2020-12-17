@@ -1,6 +1,7 @@
 #ifndef SNAKE_GRAPH_HPP
 #define SNAKE_GRAPH_HPP
 
+#include <algorithm>
 #include <random>
 #include <vector>
 
@@ -40,6 +41,10 @@ public:
         return Direction(val + turn);
     }
 
+    void operator+=(int turn) {
+        val = Direction(val + turn).val;
+    }
+
     Direction &operator=(const Direction &other) = default;
 };
 
@@ -56,6 +61,10 @@ public:
         if (x < 0 || x >= width || y < 0 || y >= height)
             return -1;
         return (x * height + y) % size;
+    }
+
+    int distance(int p1, int p2) const {
+        return std::abs(x(p1) - x(p2)) + std::abs(y(p1) - y(p2));
     }
 
     bool can_move(Direction dir) const {
@@ -84,8 +93,8 @@ public:
             ++length;
             apple = -1;
             if (length < size) {
-                int r =
-                    std::uniform_int_distribution<>(1, size - length)(engine);
+                int r = std::uniform_int_distribution<>(1, size - length)(
+                engine);
                 for (int i = 0; i < r; ++i) {
                     ++apple;
                     while (occupied[apple] || walls[apple])
@@ -105,15 +114,25 @@ public:
       width{width},
       height{height},
       size{width * height},
+      head{point(x, y)},
+      apple{-1},
       length{length},
       occupied(size, false),
       walls(size, false),
-      directions(size, {}),
-      engine{seed} {}
+      directions(size, Direction{}),
+      engine{seed} {
+        for (int i = 0; i < length; ++i) {
+            int p = point(x, y - i);
+            occupied[p] = length - i;
+        }
 
-private:
-    using random_type = std::default_random_engine;
-    random_type engine;
+        int r = std::uniform_int_distribution<>(1, size - length)(engine);
+        for (int i = 0; i < r; ++i) {
+            ++apple;
+            while (occupied[apple] || walls[apple])
+                ++apple;
+        }
+    }
 
     int point(int p, Direction dir) const {
         return point(x(p) + dir.x(), y(p) + dir.y());
@@ -126,6 +145,11 @@ private:
     int y(int p) const {
         return p % height;
     }
+
+private:
+    using random_type = std::default_random_engine;
+    random_type engine;
+
 };
 
 } // namespace snake

@@ -13,12 +13,13 @@ struct Textures {
 };
 
 struct Layout {
-    int padding, size;
+    int vert_padding, board_padding, vert_size;
+    SDL_Rect board;
 };
 
 class Display {
 public:
-    Display(Engine *engine) {}
+    Display(Engine *engine) : engine{engine}, graph{&(engine->graph)} {}
 
     int execute() {
         if (initialize() == -1)
@@ -47,6 +48,7 @@ private:
     };
 
     Engine *engine;
+    Graph *graph;
 
     SDL_Window *window;
     SDL_Renderer *renderer;
@@ -54,18 +56,20 @@ private:
     Textures textures;
     Layout layout;
 
-    State state = wall;
+    State state;
+    Direction direction;
+    unsigned last_move_time;
+    unsigned move_interval = 500;
 
     int initialize();
 
     void update();
     void on_event(SDL_Event *event);
 
-    void update_wall();
     void update_play();
     void render();
 
-    void on_resize();
+    void on_resize(int width, int height);
     void on_click();
 
     void terminate();
