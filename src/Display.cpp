@@ -165,6 +165,8 @@ void Display::update_play() {
     if (time >= last_move_time + move_interval) {
         if (engine->update(direction) == false)
             state = end;
+        if (engine->graph.length == engine->graph.size)
+            state = end;
         last_move_time = time;
     }
 }
