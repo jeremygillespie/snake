@@ -97,11 +97,13 @@ private:
         int value = 1 + graph.distance(graph.head, graph.apple) -
                     graph.distance(graph.point(graph.head, dir), graph.apple);
 
+        value *= 10;
+
         if (dir == graph.directions[graph.head])
             ++value;
 
         if (safe_move(dir, graph.head))
-            value += 4;
+            value += 40;
 
         return value;
     }

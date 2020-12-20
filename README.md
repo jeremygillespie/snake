@@ -19,6 +19,8 @@ A vertex is a point that the snake can occupy. A corner is any set of four verti
 This technique, in combination with a running total of moves(N, S, E, W) and turns(L, R) shall fulfill three tasks: maintain a cyclical path, detect loops/spirals/inaccessible vertices, and converge to a Hamiltonian path.
 
 ## To Do
-- [ ] add walls
-- [ ] A* manhattan engine
+- [ ] wall creation
+- [ ] A* search
+- [ ] decouple moves from framerate
 - [ ] manhattan with reversals
+- [ ] file saving/loading
