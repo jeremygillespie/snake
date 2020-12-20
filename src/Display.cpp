@@ -52,7 +52,10 @@ void Display::update_play() {
     unsigned frame_dur = SDL_GetTicks() - last_frame_time;
 
     while (accumulator > 0.0f && frame_dur < max_frame_dur) {
-        if (!engine->update(direction)) {
+        Direction move = engine->next_move();
+        if (graph->can_move(move) && graph->length < graph->size) {
+            graph->move(move);
+        } else {
             state = end;
             break;
         }
@@ -147,6 +150,7 @@ void Display::on_event(SDL_Event *event) {
             case wall:
                 state = play;
                 last_frame_time = SDL_GetTicks();
+                engine->initialize();
                 break;
             case end:
                 state = quit;
@@ -175,7 +179,7 @@ void Display::on_click(int x, int y) {}
 
 void Display::on_dir(Direction dir) {
     if (dir != graph->directions[graph->head] + Direction::turn_reverse)
-        direction = dir;
+        engine->set_move(dir);
 }
 
 void Display::on_resize(int width, int height) {

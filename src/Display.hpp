@@ -4,7 +4,6 @@
 #include <SDL.h>
 
 #include "Engine.hpp"
-#include "Graph.hpp"
 
 namespace snake {
 
@@ -21,7 +20,7 @@ class Display {
 public:
     Display(Engine *engine, int target_fps) :
       engine{engine},
-      graph{&(engine->graph)},
+      graph{engine->graph},
       max_frame_dur{1000 / target_fps + 1} {}
 
     int execute() {

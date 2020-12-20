@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 
+#include "AStar.hpp"
 #include "Display.hpp"
 
 using namespace snake;
@@ -32,17 +33,17 @@ int main(int argc, char *argv[]) {
     if (argc > 1) {
         std::string e = argv[argc - 1];
         if (e.compare("manhattan") == 0) {
-            engine = new Manhattan{graph};
+            engine = new Manhattan{&graph};
+        } else if (e.compare("astar") == 0) {
+            engine = new AStar{&graph};
         } else if (e.compare("human") == 0) {
-            engine = new Engine{graph};
-        } else if (e.compare("naive") == 0) {
-            engine = new Naive{graph};
+            engine = new Human{&graph};
         }
     }
 
-    using default_engine = Engine;
+    using default_engine = Human;
     if (engine == NULL)
-        engine = new default_engine{graph};
+        engine = new default_engine{&graph};
 
     // initialize display
     int target_fps = 60;
