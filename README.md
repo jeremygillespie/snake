@@ -21,6 +21,7 @@ This technique, in combination with a running total of moves(N, S, E, W) and tur
 ## To Do
 - [ ] wall creation
 - [ ] A* search
-- [ ] decouple moves from framerate
+- [x] decouple moves from framerate
 - [ ] manhattan with reversals
 - [ ] file saving/loading
+- [ ] better argument parsing

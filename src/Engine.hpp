@@ -25,6 +25,10 @@ public:
         graph.move(dir);
         return true;
     }
+
+protected:
+    static const int cost_unit = 100;
+    const int max_cost = cost_unit * (graph.size + 1);
 };
 
 class Naive : public Engine {
@@ -32,80 +36,87 @@ public:
     Naive(const Graph &graph) : Engine{graph} {}
 
     bool update(Direction) {
-        for (int i = 0; i < 4; ++i) {
-            Direction dir{i};
-            if (graph.can_move(dir) && good_move(dir)) {
-                graph.move(dir);
-                return true;
-            }
-        }
-        for (int i = 0; i < 4; ++i) {
-            Direction dir{i};
-            if (graph.can_move(dir)) {
-                graph.move(dir);
-                return true;
-            }
-        }
-        return false;
-    }
-
-private:
-    bool good_move(Direction dir) {
-        return graph.distance(graph.point(graph.head, dir), graph.apple) <
-               graph.distance(graph.head, graph.apple);
-    }
-};
-
-class Manhattan : public Engine {
-public:
-    Manhattan(const Graph &graph) : Engine{graph}, r_engine{} {}
-
-    bool update(Direction) {
-        int best_reward = -1;
-        int num_best = 0;
+        int best_cost = max_cost;
 
         for (int i = 0; i < 4; ++i) {
-            Direction dir{i};
-            int rew = reward(dir);
-            if (rew == best_reward) {
-                ++num_best;
-            } else if (rew > best_reward) {
-                best_reward = rew;
-                num_best = 1;
+            int c = cost(Direction{i});
+            if (c < best_cost) {
+                best_cost = c;
             }
         }
 
-        if (best_reward == -1)
+        if (best_cost == max_cost)
             return false;
 
         Direction best_dir;
-        int rew = -1;
+        int c = -1;
         do {
-            best_dir = {std::uniform_int_distribution<>(0, 3)(r_engine)};
-            rew = reward(best_dir);
-        } while (rew < best_reward);
+            best_dir = {std::uniform_int_distribution<>(0, 3)(*graph.r_engine)};
+            c = cost(best_dir);
+        } while (c != best_cost);
 
         graph.move(best_dir);
         return true;
     }
 
 private:
-    int reward(Direction dir) {
+    int cost(Direction dir) {
         if (graph.can_move(dir) == false)
-            return -1;
+            return max_cost;
 
-        int value = 1 + graph.distance(graph.head, graph.apple) -
-                    graph.distance(graph.point(graph.head, dir), graph.apple);
+        int result = cost_unit *
+                     graph.distance(graph.point(graph.head, dir), graph.apple);
 
-        value *= 10;
+        if (dir != graph.directions[graph.head])
+            result += 1;
 
-        if (dir == graph.directions[graph.head])
-            ++value;
+        return result;
+    }
+};
 
-        if (safe_move(dir, graph.head))
-            value += 40;
+class Manhattan : public Engine {
+public:
+    Manhattan(const Graph &graph) : Engine{graph} {}
 
-        return value;
+    bool update(Direction) {
+        int best_cost = max_cost;
+
+        for (int i = 0; i < 4; ++i) {
+            int c = cost(Direction{i});
+            if (c < best_cost) {
+                best_cost = c;
+            }
+        }
+
+        if (best_cost == max_cost)
+            return false;
+
+        Direction best_dir;
+        int c = -1;
+        do {
+            best_dir = {std::uniform_int_distribution<>(0, 3)(*graph.r_engine)};
+            c = cost(best_dir);
+        } while (c != best_cost);
+
+        graph.move(best_dir);
+        return true;
+    }
+
+private:
+    int cost(Direction dir) {
+        if (graph.can_move(dir) == false)
+            return max_cost;
+
+        int result = cost_unit *
+                     graph.distance(graph.point(graph.head, dir), graph.apple);
+
+        if (dir != graph.directions[graph.head])
+            result += 1;
+
+        if (!safe_move(dir, graph.head))
+            result += cost_unit * 4;
+
+        return result;
     }
 
     bool safe_move(Direction dir, int point) {
@@ -128,8 +139,6 @@ private:
             return graph.y(point) % 2 == 1;
         }
     }
-
-    std::default_random_engine r_engine;
 };
 
 } // namespace snake

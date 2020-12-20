@@ -50,8 +50,11 @@ public:
 
 class Graph {
 public:
-    const int width, height, size;
-    int head, apple, length;
+    using random_engine = std::default_random_engine;
+    random_engine *r_engine;
+
+    const int width, height;
+    int size, head, apple, length;
 
     std::vector<int> occupied;
     std::vector<bool> walls;
@@ -61,6 +64,18 @@ public:
         if (x < 0 || x >= width || y < 0 || y >= height)
             return -1;
         return (x * height + y) % size;
+    }
+
+    int point(int p, Direction dir) const {
+        return point(x(p) + dir.x(), y(p) + dir.y());
+    }
+
+    int x(int p) const {
+        return (p % size) / height;
+    }
+
+    int y(int p) const {
+        return p % height;
     }
 
     int distance(int p1, int p2) const {
@@ -91,16 +106,7 @@ public:
         directions[head] = dir;
         if (head == apple) {
             ++length;
-            apple = -1;
-            if (length < size) {
-                int r = std::uniform_int_distribution<>(1, size - length)(
-                engine);
-                for (int i = 0; i < r; ++i) {
-                    ++apple;
-                    while (occupied[apple] || walls[apple])
-                        ++apple;
-                }
-            }
+            update_apple();
         } else {
             // decrement tail
             for (auto i = occupied.begin(); i != occupied.end(); ++i) {
@@ -110,7 +116,21 @@ public:
         }
     }
 
-    Graph(int width, int height, int x, int y, int length, unsigned seed) :
+    void update_apple() {
+        apple = -1;
+        if (length < size) {
+            int r = std::uniform_int_distribution<>(1, size - length)(
+            *r_engine);
+            for (int i = 0; i < r; ++i) {
+                ++apple;
+                while (occupied[apple] || walls[apple])
+                    ++apple;
+            }
+        }
+    }
+
+    Graph(
+    int width, int height, int x, int y, int length, random_engine *r_engine) :
       width{width},
       height{height},
       size{width * height},
@@ -120,36 +140,14 @@ public:
       occupied(size, false),
       walls(size, false),
       directions(size, Direction{}),
-      engine{seed} {
+      r_engine{r_engine} {
         for (int i = 0; i < length; ++i) {
             int p = point(x, y - i);
             occupied[p] = length - i;
         }
 
-        int r = std::uniform_int_distribution<>(1, size - length)(engine);
-        for (int i = 0; i < r; ++i) {
-            ++apple;
-            while (occupied[apple] || walls[apple])
-                ++apple;
-        }
+        update_apple();
     }
-
-    int point(int p, Direction dir) const {
-        return point(x(p) + dir.x(), y(p) + dir.y());
-    }
-
-    int x(int p) const {
-        return (p % size) / height;
-    }
-
-    int y(int p) const {
-        return p % height;
-    }
-
-private:
-    using random_type = std::default_random_engine;
-    random_type engine;
-
 };
 
 } // namespace snake

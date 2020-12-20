@@ -19,7 +19,10 @@ struct Layout {
 
 class Display {
 public:
-    Display(Engine *engine) : engine{engine}, graph{&(engine->graph)} {}
+    Display(Engine *engine, int target_fps) :
+      engine{engine},
+      graph{&(engine->graph)},
+      max_frame_dur{1000 / target_fps + 1} {}
 
     int execute() {
         if (initialize() == -1)
@@ -58,19 +61,22 @@ private:
 
     State state;
     Direction direction;
-    unsigned last_move_time;
-    unsigned move_interval = 500;
+
+    const int max_frame_dur;
+    unsigned last_frame_time;
+    float move_interval = 0.5f;
+    float accumulator = 0.0f;
 
     int initialize();
 
     void update();
-    void on_event(SDL_Event *event);
-
     void update_play();
     void render();
 
+    void on_event(SDL_Event *event);
+    void on_click(int x, int y);
+    void on_dir(Direction dir);
     void on_resize(int width, int height);
-    void on_click();
 
     void terminate();
 };

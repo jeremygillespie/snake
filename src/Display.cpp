@@ -1,52 +1,4 @@
-#include <chrono>
-#include <iostream>
-#include <string>
-
 #include "Display.hpp"
-
-using namespace snake;
-
-int main(int argc, char *argv[]) {
-
-    // initialize graph
-    int width = 8, height = 8, x = 3, y = 3, length = 4;
-    if (argc > 2) {
-        width = std::stoi(argv[1]);
-        height = std::stoi(argv[2]);
-    }
-    if (argc > 4) {
-        x = std::stoi(argv[3]);
-        y = std::stoi(argv[4]);
-    }
-    if (argc > 5) {
-        length = std::stoi(argv[5]);
-    }
-
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    Graph graph = {width, height, x, y, length, seed};
-
-    // initialize engine
-    Engine *engine = NULL;
-
-    if (argc > 1) {
-        std::string e = argv[argc - 1];
-        if (e.compare("manhattan") == 0) {
-            engine = new Manhattan{graph};
-        } else if (e.compare("human") == 0) {
-            engine = new Engine{graph};
-        } else if (e.compare("naive") == 0) {
-            engine = new Naive{graph};
-        }
-    }
-
-    using default_engine = Engine;
-    if (engine == NULL)
-        engine = new default_engine{graph};
-
-    // execute
-    Display display = {engine};
-    return display.execute();
-}
 
 namespace snake {
 
@@ -96,79 +48,22 @@ void Display::update() {
     render();
 }
 
-void Display::on_event(SDL_Event *event) {
-    switch (event->type) {
-    case SDL_QUIT:
-        state = quit;
-        break;
-    case SDL_MOUSEBUTTONDOWN:
-        break;
-    case SDL_WINDOWEVENT:
-        switch (event->window.event) {
-        case SDL_WINDOWEVENT_RESIZED:
-            on_resize(event->window.data1, event->window.data2);
-            break;
-        }
-        break;
-    case SDL_KEYDOWN:
-        switch (event->key.keysym.sym) {
-        case SDLK_w:
-            direction = Direction::north;
-            break;
-        case SDLK_a:
-            direction = Direction::west;
-            break;
-        case SDLK_s:
-            direction = Direction::south;
-            break;
-        case SDLK_d:
-            direction = Direction::east;
-            break;
-        case SDLK_UP:
-            direction = Direction::north;
-            break;
-        case SDLK_LEFT:
-            direction = Direction::west;
-            break;
-        case SDLK_DOWN:
-            direction = Direction::south;
-            break;
-        case SDLK_RIGHT:
-            direction = Direction::east;
-            break;
-        case SDLK_EQUALS:
-            move_interval += 1;
-            move_interval /= 2;
-            break;
-        case SDLK_MINUS:
-            move_interval *= 2;
-            break;
-        case SDLK_RETURN:
-            switch (state) {
-            case wall:
-                state = play;
-                last_move_time = SDL_GetTicks();
-                break;
-            case end:
-                state = quit;
-                break;
-            default:
-                break;
-            }
-        }
-        break;
-    }
-}
-
 void Display::update_play() {
-    unsigned time = SDL_GetTicks();
-    if (time >= last_move_time + move_interval) {
-        if (engine->update(direction) == false)
+    unsigned frame_dur = SDL_GetTicks() - last_frame_time;
+
+    while (accumulator > 0.0f && frame_dur < max_frame_dur) {
+        if (!engine->update(direction)) {
             state = end;
-        if (engine->graph.length == engine->graph.size)
-            state = end;
-        last_move_time = time;
+            break;
+        }
+        accumulator -= move_interval;
+        frame_dur = SDL_GetTicks() - last_frame_time;
     }
+
+    frame_dur = SDL_GetTicks() - last_frame_time;
+    accumulator += frame_dur * 0.001f;
+
+    last_frame_time = SDL_GetTicks();
 }
 
 void Display::render() {
@@ -207,6 +102,80 @@ void Display::render() {
     }
 
     SDL_RenderPresent(renderer);
+}
+
+void Display::on_event(SDL_Event *event) {
+    switch (event->type) {
+
+    case SDL_MOUSEBUTTONDOWN:
+        break;
+
+    case SDL_KEYDOWN:
+        switch (event->key.keysym.sym) {
+        case SDLK_w:
+            on_dir(Direction::north);
+            break;
+        case SDLK_a:
+            on_dir(Direction::west);
+            break;
+        case SDLK_s:
+            on_dir(Direction::south);
+            break;
+        case SDLK_d:
+            on_dir(Direction::east);
+            break;
+        case SDLK_UP:
+            on_dir(Direction::north);
+            break;
+        case SDLK_LEFT:
+            on_dir(Direction::west);
+            break;
+        case SDLK_DOWN:
+            on_dir(Direction::south);
+            break;
+        case SDLK_RIGHT:
+            on_dir(Direction::east);
+            break;
+        case SDLK_EQUALS:
+            move_interval /= 2;
+            break;
+        case SDLK_MINUS:
+            move_interval *= 2;
+            break;
+        case SDLK_RETURN:
+            switch (state) {
+            case wall:
+                state = play;
+                last_frame_time = SDL_GetTicks();
+                break;
+            case end:
+                state = quit;
+                break;
+            default:
+                break;
+            }
+        }
+        break;
+
+    case SDL_WINDOWEVENT:
+        switch (event->window.event) {
+        case SDL_WINDOWEVENT_RESIZED:
+            on_resize(event->window.data1, event->window.data2);
+            break;
+        }
+        break;
+
+    case SDL_QUIT:
+        state = quit;
+        break;
+    }
+}
+
+void Display::on_click(int x, int y) {}
+
+void Display::on_dir(Direction dir) {
+    if (dir != graph->directions[graph->head] + Direction::turn_reverse)
+        direction = dir;
 }
 
 void Display::on_resize(int width, int height) {
