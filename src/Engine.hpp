@@ -3,6 +3,7 @@
 
 #include <array>
 #include <random>
+#include <stack>
 
 #include "Graph.hpp"
 
@@ -10,42 +11,36 @@ namespace snake {
 
 class Engine {
 public:
-    Engine(Graph *graph) : graph{graph} {}
+    Engine(Graph *graph) : graph{graph}, move{}, path{} {}
 
     Graph *graph;
 
     virtual void initialize() {}
 
-    virtual void set_move(Direction dir = {}) {}
+    virtual void update() = 0;
 
-    virtual Direction next_move() = 0;
+    virtual void set_move(Direction dir) {}
 
-protected:
-    static const int cost_unit = 100;
-    const int max_cost = cost_unit * (graph->size + 1);
+    Direction move;
+    std::stack<Direction> path;
 };
 
 class Human : public Engine {
 public:
     Human(Graph *graph) : Engine{graph} {}
 
+    void update() {}
+
     void set_move(Direction dir) {
-        direction = dir;
+        move = dir;
     }
-
-    Direction next_move() {
-        return direction;
-    }
-
-private:
-    Direction direction;
 };
 
 class Manhattan : public Engine {
 public:
     Manhattan(Graph *graph) : Engine{graph} {}
 
-    Direction next_move() {
+    void update() {
         int best_cost = max_cost;
 
         for (int i = 0; i < 4; ++i) {
@@ -63,10 +58,13 @@ public:
             c = cost(best_dir);
         } while (c != best_cost);
 
-        return best_dir;
+        move = best_dir;
     }
 
 private:
+    static const int cost_unit = 100;
+    const int max_cost = cost_unit * (graph->size + 1);
+
     int cost(Direction dir) {
         if (graph->can_move(dir) == false)
             return max_cost;

@@ -45,10 +45,7 @@ int main(int argc, char *argv[]) {
     if (engine == NULL)
         engine = new default_engine{&graph};
 
-    // initialize display
-    int target_fps = 60;
-
     // execute
-    Display display = {engine, target_fps};
+    Display display = {engine};
     return display.execute();
 }

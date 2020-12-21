@@ -7,8 +7,6 @@ int Display::initialize() {
         return false;
     }
 
-    state = wall;
-
     window = SDL_CreateWindow(
     "Snake", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 900, 600,
     SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
@@ -39,38 +37,64 @@ int Display::initialize() {
 
     on_resize(900, 600);
 
+    init_wall();
+
     return true;
 }
 
+void Display::init_wall() {
+    state = State::wall;
+}
+
+void Display::init_play() {
+    state = State::play;
+    engine->initialize();
+    stats.last_frame_time = SDL_GetTicks();
+    stats.last_update_time = stats.last_frame_time;
+}
+
 void Display::update() {
-    if (state == play)
+    if (state == State::play)
         update_play();
     render();
 }
 
 void Display::update_play() {
-    unsigned frame_dur = SDL_GetTicks() - last_frame_time;
+    unsigned frame_dur = SDL_GetTicks() - stats.last_frame_time;
 
-    while (accumulator > 0.0f && frame_dur < max_frame_dur) {
-        Direction move = engine->next_move();
-        if (graph->can_move(move) && graph->length < graph->size) {
-            graph->move(move);
+    while (stats.accumulator > 0.0f) {
+        int old_length = graph->length;
+
+        engine->update();
+        if (graph->can_move(engine->move) && graph->length < graph->size) {
+            graph->move(engine->move);
+
+            ++stats.moves;
+
+            if (graph->length > old_length) {
+                ++stats.apples;
+            }
+
             if (graph->length == graph->size) {
-                state = end;
+                state = State::end;
                 break;
             }
         } else {
-            state = end;
+            state = State::end;
             break;
         }
-        accumulator -= move_interval;
-        frame_dur = SDL_GetTicks() - last_frame_time;
+        stats.accumulator -= stats.move_interval;
+        frame_dur = SDL_GetTicks() - stats.last_frame_time;
+
+        if (frame_dur > stats.max_frame_dur) {
+            stats.accumulator = 0.0f;
+            break;
+        }
     }
 
-    frame_dur = SDL_GetTicks() - last_frame_time;
-    accumulator += frame_dur * 0.001f;
+    stats.accumulator += frame_dur * 0.001f;
 
-    last_frame_time = SDL_GetTicks();
+    stats.last_frame_time = SDL_GetTicks();
 }
 
 void Display::render() {
@@ -144,20 +168,18 @@ void Display::on_event(SDL_Event *event) {
             on_dir(Direction::east);
             break;
         case SDLK_EQUALS:
-            move_interval /= 2;
+            stats.move_interval /= 2;
             break;
         case SDLK_MINUS:
-            move_interval *= 2;
+            stats.move_interval *= 2;
             break;
         case SDLK_RETURN:
             switch (state) {
-            case wall:
-                state = play;
-                last_frame_time = SDL_GetTicks();
-                engine->initialize();
+            case State::wall:
+                init_play();
                 break;
-            case end:
-                state = quit;
+            case State::end:
+                state = State::quit;
                 break;
             default:
                 break;
@@ -174,7 +196,7 @@ void Display::on_event(SDL_Event *event) {
         break;
 
     case SDL_QUIT:
-        state = quit;
+        state = State::quit;
         break;
     }
 }

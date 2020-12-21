@@ -1,6 +1,8 @@
 #ifndef SNAKE_DISPLAY_HPP
 #define SNAKE_DISPLAY_HPP
 
+#include <queue>
+
 #include <SDL.h>
 
 #include "Engine.hpp"
@@ -16,12 +18,34 @@ struct Layout {
     SDL_Rect board;
 };
 
+struct Stats {
+private:
+    static constexpr int target_fps = 60;
+
+public:
+    const int max_frame_dur = 1000 / target_fps + 1;
+    const int update_interval = 1000;
+
+    unsigned last_frame_time;
+    unsigned last_update_time;
+    float move_interval = 0.5f;
+    float accumulator = 0.0f;
+
+    int frames_per_10s, moves_per_10s;
+    int moves = 0, apples = 0;
+};
+
+enum class State
+{
+    wall,
+    play,
+    end,
+    quit
+};
+
 class Display {
 public:
-    Display(Engine *engine, int target_fps) :
-      engine{engine},
-      graph{engine->graph},
-      max_frame_dur{1000 / target_fps + 1} {}
+    Display(Engine *engine) : engine{engine}, graph{engine->graph} {}
 
     int execute() {
         if (initialize() == -1)
@@ -29,7 +53,7 @@ public:
 
         SDL_Event event;
 
-        while (state != quit) {
+        while (state != State::quit) {
             while (SDL_PollEvent(&event)) {
                 on_event(&event);
             }
@@ -41,14 +65,6 @@ public:
     }
 
 private:
-    enum State
-    {
-        wall,
-        play,
-        end,
-        quit
-    };
-
     Engine *engine;
     Graph *graph;
 
@@ -57,16 +73,13 @@ private:
 
     Textures textures;
     Layout layout;
-
+    Stats stats;
     State state;
-    Direction direction;
-
-    const int max_frame_dur;
-    unsigned last_frame_time;
-    float move_interval = 0.5f;
-    float accumulator = 0.0f;
 
     int initialize();
+
+    void init_wall();
+    void init_play();
 
     void update();
     void update_play();
