@@ -25,4 +25,4 @@ This technique, in combination with a running total of moves(N, S, E, W) and tur
 - [ ] manhattan with reversals
 - [ ] file saving/loading
 - [ ] better argument parsing
-- [ ] optimize A*
+- [ ] better search algorithm

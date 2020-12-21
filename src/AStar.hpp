@@ -38,7 +38,6 @@ public:
 
     Direction next_move() {
         if (!search()) {
-            std::cout << "search failed\n";
             no_path();
         }
         return move;
@@ -53,11 +52,11 @@ private:
         move = manhattan.next_move();
     }
 
-    static constexpr int max_nodes = 100000000;
+    static constexpr int max_nodes = 100000;
 
     std::vector<Node> tree;
 
-    std::vector<bool> checked;
+    std::vector<int> max_occupied;
 
     std::priority_queue<Node::pair_t, std::vector<Node::pair_t>, Node_comp> q;
 
@@ -67,7 +66,7 @@ private:
         tree.push_back(
         {graph->head, 0, 0, graph->directions[graph->head], tree.begin()});
 
-        checked = std::vector<bool>(graph->size, false);
+        max_occupied = std::vector<int>(graph->size, 0);
 
         q = {};
         q.push({tree.begin(), 0});
@@ -81,38 +80,37 @@ private:
             for (int d = 0; d < 4; ++d) {
                 Direction dir{d};
                 int pos = graph->point(n->position, dir);
-                int t = n->time + 1;
+                int time = n->time + 1;
 
                 if (pos == -1)
                     continue;
 
-                if (checked[pos] && visited(n, pos))
-                    continue;
-
-                checked[pos] = true;
-
                 if (graph->walls[pos])
                     continue;
 
-                if (graph->occupied[pos] > t)
+                if (graph->occupied[pos] > time)
                     continue;
 
                 if (!safe(dir, pos))
                     continue;
 
-                int c = n->cost + 100;
+                if (time <= max_occupied[pos] && visited(n, pos))
+                    continue;
+
+                max_occupied[pos] = time;
+
+                int cost = n->cost + 100;
 
                 if (dir != n->direction)
-                    ++c;
+                    ++cost;
 
-                int priority = c + graph->distance(pos, graph->apple);
+                int priority = cost + graph->distance(pos, graph->apple);
 
-                tree.push_back(Node{pos, t, c, dir, n});
-                q.push({--tree.end(), c});
+                tree.push_back(Node{pos, time, cost, dir, n});
+                q.push({--tree.end(), cost});
             }
 
             if (tree.size() + 3 > tree.capacity()) {
-                std::cout << "insufficient memory\n";
                 return false;
             }
 
