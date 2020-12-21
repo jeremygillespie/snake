@@ -30,11 +30,14 @@ int Display::initialize() {
     SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 170, 0));
     textures.snake = SDL_CreateTextureFromSurface(renderer, surface);
 
-    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 0, 0));
-    textures.board = SDL_CreateTextureFromSurface(renderer, surface);
-
     SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 200, 0, 0));
     textures.apple = SDL_CreateTextureFromSurface(renderer, surface);
+
+    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 200, 170, 0));
+    textures.head = SDL_CreateTextureFromSurface(renderer, surface);
+
+    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 0, 0));
+    textures.board = SDL_CreateTextureFromSurface(renderer, surface);
 
     SDL_FreeSurface(surface);
 
@@ -80,25 +83,27 @@ void Display::update_play() {
     while (stats.accumulator > 0.0f) {
         int old_length = graph->length;
 
-        engine->update();
-        if (graph->can_move(engine->move) && graph->length < graph->size) {
-            graph->move(engine->move);
+        if (engine->update()) {
+            if (graph->can_move(engine->move) && graph->length < graph->size) {
+                graph->move(engine->move);
 
-            ++stats.moves;
-            ++stats.move_counts.back();
+                ++stats.moves;
+                ++stats.move_counts.back();
 
-            if (graph->length > old_length) {
-                ++stats.apples;
-            }
+                if (graph->length > old_length) {
+                    ++stats.apples;
+                }
 
-            if (graph->length == graph->size) {
-                state = State::end;
+                if (graph->length == graph->size) {
+                    end_play();
+                    break;
+                }
+            } else {
+                end_play();
                 break;
             }
-        } else {
-            state = State::end;
-            break;
         }
+
         stats.accumulator -= stats.move_interval;
 
         frame_dur = SDL_GetTicks() - stats.last_frame_ticks;
@@ -159,6 +164,10 @@ void Display::render() {
                 dst.x += dir.x() * layout.vert_padding * 3;
                 dst.y -= dir.y() * layout.vert_padding * 3;
                 SDL_RenderCopy(renderer, textures.snake, &src, &dst);
+            }
+
+            if (point == engine->search_pos) {
+                SDL_RenderCopy(renderer, textures.head, &src, &dst);
             }
         }
     }

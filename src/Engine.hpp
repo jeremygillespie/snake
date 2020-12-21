@@ -17,19 +17,25 @@ public:
 
     virtual void initialize() {}
 
-    virtual void update() = 0;
+    virtual bool update() = 0;
 
     virtual void set_move(Direction dir) {}
 
     Direction move;
+
     std::stack<Direction> path;
+
+    int search_pos;
 };
 
 class Human : public Engine {
 public:
     Human(Graph *graph) : Engine{graph} {}
 
-    void update() {}
+    bool update() {
+        search_pos = graph->head;
+        return true;
+    }
 
     void set_move(Direction dir) {
         move = dir;
@@ -40,7 +46,7 @@ class Manhattan : public Engine {
 public:
     Manhattan(Graph *graph) : Engine{graph} {}
 
-    void update() {
+    bool update() {
         int best_cost = max_cost;
 
         for (int i = 0; i < 4; ++i) {
@@ -59,6 +65,8 @@ public:
         } while (c != best_cost);
 
         move = best_dir;
+        search_pos = graph->head;
+        return true;
     }
 
 private:

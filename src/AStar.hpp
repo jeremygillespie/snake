@@ -59,7 +59,59 @@ class AStar : public Engine {
 public:
     AStar(Graph *graph) : Engine{graph}, manhattan{graph} {}
 
-    void update() {
+    // bool update() {
+    // bool tail_nearby = false;
+    // for (int d1 = 0; !tail_nearby && d1 < 3; ++d1) {
+    //     int p1 = graph->point(graph->head, {d1});
+
+    //     if (p1 != -1 && graph->occupied[p1] == 1) {
+    //         tail_nearby = true;
+    //     }
+
+    //     for (int d2 = 0; !tail_nearby && d2 < 3; ++d2) {
+    //         int p2 = graph->point(p1, {d2});
+    //         if (p2 != -1 && graph->occupied[p2] == 1) {
+    //             tail_nearby = true;
+    //         }
+    //     }
+    // }
+
+    //     bool path_found = true;
+    //     if (tail_nearby || path.empty()) {
+    //         path_found = search();
+    //     }
+
+    // if (n->position == graph->apple) {
+    //     do {
+    //         path.push(n->direction);
+    //         n = n->parent;
+    //     } while (n->parent != n);
+    // }
+
+    //     if (path_found) {
+    //         move = path.top();
+    //         path.pop();
+    //     } else {
+    //         no_path();
+    //     }
+
+    //     search_pos = graph->head;
+    //     return true;
+    // }
+
+    bool update() {
+
+        // continue current search
+        if (searching) {
+            searching = update_search();
+
+            if (!searching) {
+                term_search();
+                return true;
+            }
+            return false;
+        }
+
         bool tail_nearby = false;
         for (int d1 = 0; !tail_nearby && d1 < 3; ++d1) {
             int p1 = graph->point(graph->head, {d1});
@@ -76,28 +128,31 @@ public:
             }
         }
 
-        bool path_found = true;
+        // start new search
         if (tail_nearby || path.empty()) {
-            path_found = search();
+            init_search();
+            searching = update_search();
+
+            if (!searching) {
+                term_search();
+                return true;
+            }
+
+            return false;
         }
 
-        if (path_found) {
-            move = path.top();
-            path.pop();
-        } else {
-            no_path();
-        }
+        // follow old search
+        move = path.top();
+        path.pop();
+        return true;
     }
 
 private:
     Manhattan manhattan;
 
-    void no_path() {
-        manhattan.update();
-        move = manhattan.move;
-    }
-
     static constexpr int max_nodes = 1000000;
+
+    bool searching = false;
 
     std::vector<Node> tree;
 
@@ -105,7 +160,9 @@ private:
     Node_comp::pair_t, std::vector<Node_comp::pair_t>, Node_comp>
     q;
 
-    bool search() {
+    Node::it_t n;
+
+    void init_search() {
         tree = {};
         tree.reserve(max_nodes);
         tree.push_back(
@@ -113,61 +170,70 @@ private:
 
         q = {};
         q.push({tree.begin(), 0});
+    }
 
-        Node::it_t n;
+    bool update_search() {
+        n = std::get<Node_comp::it_el>(q.top());
+        q.pop();
 
-        do {
-            n = std::get<Node_comp::it_el>(q.top());
-            q.pop();
+        search_pos = n->position;
 
-            for (int d = 0; d < 4; ++d) {
-                Direction dir{d};
-                int pos = graph->point(n->position, dir);
-                int time = n->time + 1;
+        for (int d = 0; d < 4; ++d) {
+            Direction dir{d};
+            int pos = graph->point(n->position, dir);
+            int time = n->time + 1;
 
-                if (pos == -1)
-                    continue;
+            if (pos == -1)
+                continue;
 
-                if (graph->walls[pos])
-                    continue;
+            if (graph->walls[pos])
+                continue;
 
-                if (graph->occupied[pos] > time)
-                    continue;
+            if (graph->occupied[pos] > time)
+                continue;
 
-                if (!safe(dir, pos))
-                    continue;
+            if (!safe(dir, pos))
+                continue;
 
-                if (n->visited[pos])
-                    continue;
+            if (n->visited[pos])
+                continue;
 
-                int cost = n->cost + 100;
+            int cost = n->cost + 100;
 
-                if (dir != n->direction)
-                    ++cost;
+            if (dir != n->direction)
+                ++cost;
 
-                int priority = cost + graph->distance(pos, graph->apple);
+            int priority = cost + graph->distance(pos, graph->apple);
 
-                tree.push_back(Node{pos, time, cost, dir, n});
-                q.push({--tree.end(), priority});
+            tree.push_back(Node{pos, time, cost, dir, n});
+            q.push({--tree.end(), priority});
 
-                if (tree.size() == tree.capacity()) {
-                    std::cout << "insufficient memory\n";
-                    return false;
-                }
-            }
+            if (tree.size() == tree.capacity())
+                return false;
+        }
 
-        } while (n->position != graph->apple && !q.empty());
+        if (n->position == graph->apple)
+            return false;
 
+        if (q.empty())
+            return false;
+
+        return true;
+    }
+
+    void term_search() {
         if (n->position == graph->apple) {
             do {
                 path.push(n->direction);
                 n = n->parent;
             } while (n->parent != n);
 
-            return true;
+            move = path.top();
+            path.pop();
+        } else {
+            manhattan.update();
+            move = manhattan.move;
         }
-
-        return false;
     }
 
     bool safe(Direction dir, int pos) {

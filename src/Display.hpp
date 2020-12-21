@@ -11,7 +11,7 @@
 namespace snake {
 
 struct Textures {
-    SDL_Texture *snake, *apple, *board, *button;
+    SDL_Texture *snake, *apple, *head, *board, *button;
 };
 
 struct Layout {
