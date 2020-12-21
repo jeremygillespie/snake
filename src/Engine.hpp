@@ -2,7 +2,6 @@
 #define SNAKE_ENGINE_HPP
 
 #include <array>
-#include <iostream>
 #include <random>
 
 #include "Graph.hpp"

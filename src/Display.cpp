@@ -55,6 +55,10 @@ void Display::update_play() {
         Direction move = engine->next_move();
         if (graph->can_move(move) && graph->length < graph->size) {
             graph->move(move);
+            if (graph->length == graph->size) {
+                state = end;
+                break;
+            }
         } else {
             state = end;
             break;
