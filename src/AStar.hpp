@@ -76,13 +76,17 @@ public:
             }
         }
 
+        bool path_found = true;
         if (tail_nearby || path.empty()) {
-            if (!search()) {
-                no_path();
-            }
+            path_found = search();
         }
-        move = path.top();
-        path.pop();
+
+        if (path_found) {
+            move = path.top();
+            path.pop();
+        } else {
+            no_path();
+        }
     }
 
 private:
@@ -93,7 +97,7 @@ private:
         move = manhattan.move;
     }
 
-    static constexpr int max_nodes = 100000;
+    static constexpr int max_nodes = 1000000;
 
     std::vector<Node> tree;
 

@@ -1,3 +1,6 @@
+// DEBUG
+#include <iostream>
+
 #include "Display.hpp"
 
 namespace snake {
@@ -37,20 +40,30 @@ int Display::initialize() {
 
     on_resize(900, 600);
 
-    init_wall();
+    start_wall();
 
     return true;
 }
 
-void Display::init_wall() {
+void Display::start_wall() {
     state = State::wall;
 }
 
-void Display::init_play() {
+void Display::start_play() {
     state = State::play;
+
     engine->initialize();
-    stats.last_frame_time = SDL_GetTicks();
-    stats.last_update_time = stats.last_frame_time;
+
+    stats.last_frame_ticks = SDL_GetTicks();
+    stats.last_update_ticks = stats.last_frame_ticks;
+}
+
+void Display::end_play() {
+    state = State::end;
+
+    int mpa = stats.moves_per_apple(2);
+    std::cout << "Apples: " << stats.apples << "\n";
+    std::cout << "Moves per apple: " << mpa / 100 << "." << mpa % 100 << "\n";
 }
 
 void Display::update() {
@@ -60,7 +73,9 @@ void Display::update() {
 }
 
 void Display::update_play() {
-    unsigned frame_dur = SDL_GetTicks() - stats.last_frame_time;
+    ++stats.frame_counts.back();
+
+    unsigned frame_dur = SDL_GetTicks() - stats.last_frame_ticks;
 
     while (stats.accumulator > 0.0f) {
         int old_length = graph->length;
@@ -70,6 +85,7 @@ void Display::update_play() {
             graph->move(engine->move);
 
             ++stats.moves;
+            ++stats.move_counts.back();
 
             if (graph->length > old_length) {
                 ++stats.apples;
@@ -84,17 +100,32 @@ void Display::update_play() {
             break;
         }
         stats.accumulator -= stats.move_interval;
-        frame_dur = SDL_GetTicks() - stats.last_frame_time;
 
+        frame_dur = SDL_GetTicks() - stats.last_frame_ticks;
         if (frame_dur > stats.max_frame_dur) {
-            stats.accumulator = 0.0f;
             break;
         }
     }
 
-    stats.accumulator += frame_dur * 0.001f;
+    if (frame_dur <= stats.max_frame_dur) {
+        stats.accumulator += frame_dur * 0.001f;
+    } else {
+        stats.accumulator = 0.0f;
+    }
 
-    stats.last_frame_time = SDL_GetTicks();
+    stats.last_frame_ticks = SDL_GetTicks();
+
+    if (SDL_GetTicks() >= stats.update_interval + stats.last_update_ticks) {
+
+        int fps = stats.frames_per_second(1);
+        int mps = stats.moves_per_second(1);
+        std::cout << "FPS: " << fps / 10 << "." << fps % 10 << "\n";
+        std::cout << "MPS: " << mps / 10 << "." << mps % 10 << "\n\n";
+
+        stats.update();
+
+        stats.last_update_ticks = SDL_GetTicks();
+    }
 }
 
 void Display::render() {
@@ -176,7 +207,7 @@ void Display::on_event(SDL_Event *event) {
         case SDLK_RETURN:
             switch (state) {
             case State::wall:
-                init_play();
+                start_play();
                 break;
             case State::end:
                 state = State::quit;
