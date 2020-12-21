@@ -26,3 +26,4 @@ This technique, in combination with a running total of moves(N, S, E, W) and tur
 - [ ] file saving/loading
 - [ ] better argument parsing
 - [ ] adjust A* space > time
+- [ ] live stats
