@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
         engine = new Manhattan{&graph};
         break;
     case E_type::astar:
-        engine = new Manhattan_AStar{&graph};
+        engine = new Manhattan_AStar{&graph, show_search};
         break;
     default:
         engine = new Human{&graph};
@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
     }
 
     // init display
-    Display display = {engine, show_search};
+    Display display = {engine};
 
     // execute
     return display.execute();

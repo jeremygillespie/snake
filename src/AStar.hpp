@@ -61,62 +61,65 @@ public:
 
 class Manhattan_AStar : public Engine {
 public:
-    Manhattan_AStar(Graph *graph) : Engine{graph}, manhattan{graph} {}
+    Manhattan_AStar(Graph *graph, bool show_search) :
+      Engine(graph, show_search),
+      fallback{graph} {}
 
     bool update() {
 
         // continue current search
-        if (!path_found) {
-            path_found = update_search();
+        if (!move_found) {
+            move_found = update_search();
             return false;
         }
 
         // start new search
-        if (path.empty()) {
+        if (result_path.empty()) {
             init_search();
-            path_found = update_search();
+            move_found = update_search();
             return false;
         }
 
         // follow old search
         search_path = {};
-        move = path.front();
-        path.pop_front();
+        move = result_path.front();
+        result_path.pop_front();
         return true;
     }
 
 private:
-    Manhattan manhattan;
+    static constexpr int max_nodes = 100000;
 
-    static constexpr int max_nodes = 1000000;
+    using fallback_engine = Manhattan;
+    fallback_engine fallback;
 
-    bool path_found = true;
+    bool move_found = true;
 
-    std::deque<Direction> path;
+    std::deque<Direction> result_path;
 
-    std::vector<Node> tree;
+    std::vector<Node> search_tree;
 
     std::priority_queue<
     Node_comp::pair_t, std::vector<Node_comp::pair_t>, Node_comp>
-    q;
+    search_queue;
 
     Node::it_t n;
 
     void init_search() {
-        tree = {};
-        tree.reserve(max_nodes);
-        tree.push_back(
-        Node{graph->head, graph->directions[graph->head], tree, graph->size});
+        search_tree = {};
+        search_tree.reserve(max_nodes);
+        search_tree.push_back(Node{
+        graph->head, graph->directions[graph->head], search_tree, graph->size});
 
-        q = {};
-        q.push({tree.begin(), 0});
+        search_queue = {};
+        search_queue.push({search_tree.begin(), 0});
 
-        // update_search();
+        update_search();
     }
 
     bool update_search() {
-        n = std::get<Node_comp::it_el>(q.top());
-        q.pop();
+        n = std::get<Node_comp::it_el>(search_queue.top());
+        search_queue.pop();
 
         for (int d = 0; d < 4; ++d) {
             Direction dir{d};
@@ -138,7 +141,12 @@ private:
             if (n->visited[pos])
                 continue;
 
-            int cost = n->cost + Cost::move;
+            int distance = graph->distance(pos, graph->apple);
+
+            int cost = n->cost;
+
+            if (distance > 2)
+                cost += Cost::move;
 
             if (dir != n->direction)
                 cost += Cost::turn;
@@ -149,43 +157,52 @@ private:
                     cost += Cost::empty_adjacent;
             }
 
-            int heuristic = graph->distance(pos, graph->apple) * Cost::distance;
+            int heuristic = distance * Cost::distance;
 
             int priority = cost + heuristic;
 
-            tree.push_back(Node{pos, time, cost, dir, n});
-            q.push({--tree.end(), priority});
+            search_tree.push_back(Node{pos, time, cost, dir, n});
+            search_queue.push({--search_tree.end(), priority});
 
-            if (tree.size() == tree.capacity()) {
-                manhattan.update();
-                move = manhattan.move;
+            if (search_tree.size() == search_tree.capacity()) {
+                fallback.update();
+                move = fallback.move;
                 return true;
             }
         }
 
+        if (show_search) {
+            update_search_path();
+        }
+
+        if (n->position == graph->apple) {
+            update_result_path();
+            return true;
+        }
+
+        if (search_queue.empty()) {
+            fallback.update();
+            move = fallback.move;
+            return true;
+        }
+
+        return false;
+    }
+
+    void update_result_path() {
+        while (n->parent != n) {
+            result_path.push_front(n->direction);
+            n = n->parent;
+        }
+    }
+
+    void update_search_path() {
         Node::it_t current = n;
         search_path = {};
         while (current->parent != current) {
             search_path.push_front(current->direction);
             current = current->parent;
         }
-
-        // apple found
-        if (n->position == graph->apple) {
-            while (n->parent != n) {
-                path.push_front(n->direction);
-                n = n->parent;
-            }
-            return true;
-        }
-
-        if (q.empty()) {
-            manhattan.update();
-            move = manhattan.move;
-            return true;
-        }
-
-        return false;
     }
 
     bool safe(Direction dir, int pos) {

@@ -10,6 +10,13 @@
 
 namespace snake {
 
+struct Config {
+    static constexpr int target_fps = 60;
+    static constexpr int max_frame_dur = 1000 / target_fps + 1;
+    static constexpr int update_interval = 500;
+    static constexpr int moving_average_n = 4;
+};
+
 struct Textures {
     SDL_Texture *snake, *apple, *head, *board, *button;
 };
@@ -17,15 +24,6 @@ struct Textures {
 struct Layout {
     int vert_padding, board_padding, vert_size;
     SDL_Rect board;
-};
-
-struct Config {
-    static constexpr int target_fps = 60;
-    static constexpr int max_frame_dur = 1000 / target_fps + 1;
-    static constexpr int update_interval = 500;
-    static constexpr int moving_average_n = 4;
-
-    const bool show_search;
 };
 
 class Stats {
@@ -119,10 +117,7 @@ enum class State
 
 class Display {
 public:
-    Display(Engine *engine, bool show_search) :
-      engine{engine},
-      graph{engine->graph},
-      config{show_search} {}
+    Display(Engine *engine) : engine{engine}, graph{engine->graph} {}
 
     int execute() {
         if (initialize() == -1)

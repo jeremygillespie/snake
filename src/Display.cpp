@@ -55,8 +55,6 @@ void Display::start_wall() {
 void Display::start_play() {
     state = State::play;
 
-    engine->initialize();
-
     stats.last_frame_ticks = SDL_GetTicks();
     stats.last_update_ticks = stats.last_frame_ticks;
 }
@@ -103,7 +101,7 @@ void Display::update_play() {
                 break;
             }
             stats.accumulator -= stats.move_interval;
-        } else if (config.show_search) {
+        } else if (engine->show_search) {
             stats.accumulator -= stats.move_interval;
         }
 
@@ -137,7 +135,7 @@ void Display::render() {
 
     SDL_RenderCopy(renderer, textures.board, &src, &layout.board);
 
-    if (config.show_search) {
+    if (engine->show_search) {
         point = graph->head;
         for (auto it = engine->search_path.begin();
              it != engine->search_path.end(); ++it) {
