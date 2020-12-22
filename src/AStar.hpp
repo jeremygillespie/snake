@@ -59,9 +59,9 @@ public:
     }
 };
 
-class AStar : public Engine {
+class Manhattan_AStar : public Engine {
 public:
-    AStar(Graph *graph) : Engine{graph}, manhattan{graph} {}
+    Manhattan_AStar(Graph *graph) : Engine{graph}, manhattan{graph} {}
 
     bool update() {
 

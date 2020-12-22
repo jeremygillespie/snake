@@ -27,5 +27,6 @@ This technique, in combination with a running total of moves(N, S, E, W) and tur
 - [ ] wall creation
 - [ ] manhattan with reversals
 - [ ] improve search algorithm
-  - [ ] chase tail if partition
+  - [ ] detect partitions
+  - [ ] chase tail if apple is in partition
 - [ ] file saving/loading

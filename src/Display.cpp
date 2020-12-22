@@ -102,9 +102,10 @@ void Display::update_play() {
                 end_play();
                 break;
             }
+            stats.accumulator -= stats.move_interval;
+        } else if (config.show_search) {
+            stats.accumulator -= stats.move_interval;
         }
-
-        stats.accumulator -= stats.move_interval;
 
         frame_dur = SDL_GetTicks() - stats.last_frame_ticks;
         if (frame_dur > config.max_frame_dur) {
@@ -136,19 +137,21 @@ void Display::render() {
 
     SDL_RenderCopy(renderer, textures.board, &src, &layout.board);
 
-    point = graph->head;
-    for (auto it = engine->search_path.begin(); it != engine->search_path.end();
-         ++it) {
+    if (config.show_search) {
+        point = graph->head;
+        for (auto it = engine->search_path.begin();
+             it != engine->search_path.end(); ++it) {
+            dst = vertex(graph->x(point), graph->y(point));
+            SDL_RenderCopy(renderer, textures.head, &src, &dst);
+            dst.x += (*it).x() * layout.vert_padding * 3;
+            dst.y -= (*it).y() * layout.vert_padding * 3;
+            SDL_RenderCopy(renderer, textures.head, &src, &dst);
+
+            point = graph->point(point, *it);
+        }
         dst = vertex(graph->x(point), graph->y(point));
         SDL_RenderCopy(renderer, textures.head, &src, &dst);
-        dst.x += (*it).x() * layout.vert_padding * 3;
-        dst.y -= (*it).y() * layout.vert_padding * 3;
-        SDL_RenderCopy(renderer, textures.head, &src, &dst);
-
-        point = graph->point(point, *it);
     }
-    dst = vertex(graph->x(point), graph->y(point));
-    SDL_RenderCopy(renderer, textures.head, &src, &dst);
 
     for (int x = 0; x < graph->width; ++x) {
         for (int y = 0; y < graph->height; ++y) {

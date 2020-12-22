@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
             e = E_type::manhattan;
         }
 
-        if (arg0.compare("--astar") == 0) {
+        if (arg0.compare("--manastar") == 0) {
             e = E_type::astar;
         }
     }
@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
         engine = new Manhattan{&graph};
         break;
     case E_type::astar:
-        engine = new AStar{&graph};
+        engine = new Manhattan_AStar{&graph};
         break;
     default:
         engine = new Human{&graph};
