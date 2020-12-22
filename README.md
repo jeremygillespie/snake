@@ -21,11 +21,11 @@ This technique, in combination with a running total of moves(N, S, E, W) and tur
 ## To Do
 
 - [x] A* search
-- [x] decouple moves from framerate
-- [x] better argument parsing
-- [x] adjust A* space > time
-- [x] live stats
-- [ ] hide search display
+- [x] stats
+- [x] show search path
+- [ ] visual stats
 - [ ] wall creation
 - [ ] manhattan with reversals
+- [ ] double A* search
+- [ ] fail-faster search
 - [ ] file saving/loading

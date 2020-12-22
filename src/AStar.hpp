@@ -1,9 +1,6 @@
 #ifndef SNAKE_ASTAR_HPP
 #define SNAKE_ASTAR_HPP
 
-// DEBUG
-#include <iostream>
-
 #include <queue>
 #include <tuple>
 
@@ -67,48 +64,22 @@ public:
     bool update() {
 
         // continue current search
-        if (searching) {
-            searching = update_search();
-
-            if (!searching) {
-                term_search();
-                return true;
-            }
+        if (!path_found) {
+            path_found = update_search();
             return false;
         }
 
-        bool tail_nearby = false;
-        for (int d1 = 0; !tail_nearby && d1 < 3; ++d1) {
-            int p1 = graph->point(graph->head, {d1});
-
-            if (p1 != -1 && graph->occupied[p1] == 1) {
-                tail_nearby = true;
-            }
-
-            for (int d2 = 0; !tail_nearby && d2 < 3; ++d2) {
-                int p2 = graph->point(p1, {d2});
-                if (p2 != -1 && graph->occupied[p2] == 1) {
-                    tail_nearby = true;
-                }
-            }
-        }
-
         // start new search
-        if (tail_nearby || path.empty()) {
+        if (path.empty()) {
             init_search();
-            searching = update_search();
-
-            if (!searching) {
-                term_search();
-                return true;
-            }
-
+            path_found = update_search();
             return false;
         }
 
         // follow old search
-        move = path.top();
-        path.pop();
+        search_path = {};
+        move = path.front();
+        path.pop_front();
         return true;
     }
 
@@ -117,7 +88,9 @@ private:
 
     static constexpr int max_nodes = 1000000;
 
-    bool searching = false;
+    bool path_found = true;
+
+    std::deque<Direction> path;
 
     std::vector<Node> tree;
 
@@ -135,13 +108,13 @@ private:
 
         q = {};
         q.push({tree.begin(), 0});
+
+        // update_search();
     }
 
     bool update_search() {
         n = std::get<Node_comp::it_el>(q.top());
         q.pop();
-
-        search_pos = n->position;
 
         for (int d = 0; d < 4; ++d) {
             Direction dir{d};
@@ -175,32 +148,36 @@ private:
             tree.push_back(Node{pos, time, cost, dir, n});
             q.push({--tree.end(), priority});
 
-            if (tree.size() == tree.capacity())
-                return false;
+            if (tree.size() == tree.capacity()) {
+                manhattan.update();
+                move = manhattan.move;
+                return true;
+            }
         }
 
-        if (n->position == graph->apple)
-            return false;
+        Node::it_t current = n;
+        search_path = {};
+        while (current->parent != current) {
+            search_path.push_front(current->direction);
+            current = current->parent;
+        }
 
-        if (q.empty())
-            return false;
-
-        return true;
-    }
-
-    void term_search() {
+        // apple found
         if (n->position == graph->apple) {
-            do {
-                path.push(n->direction);
+            while (n->parent != n) {
+                path.push_front(n->direction);
                 n = n->parent;
-            } while (n->parent != n);
+            }
+            return true;
+        }
 
-            move = path.top();
-            path.pop();
-        } else {
+        if (q.empty()) {
             manhattan.update();
             move = manhattan.move;
+            return true;
         }
+
+        return false;
     }
 
     bool safe(Direction dir, int pos) {

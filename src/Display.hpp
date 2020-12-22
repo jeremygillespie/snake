@@ -97,6 +97,8 @@ public:
     }
 
     int moves_per_apple(int decimals = 0) {
+        if (apples == 0)
+            return 0;
         int numerator = moves;
         int denominator = apples;
 
@@ -161,6 +163,7 @@ private:
     void update();
     void update_play();
     void render();
+    SDL_Rect vertex(int x, int y);
 
     void on_event(SDL_Event *event);
     void on_click(int x, int y);

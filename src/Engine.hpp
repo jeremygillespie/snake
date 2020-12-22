@@ -2,8 +2,8 @@
 #define SNAKE_ENGINE_HPP
 
 #include <array>
+#include <deque>
 #include <random>
-#include <stack>
 
 #include "Graph.hpp"
 
@@ -11,21 +11,21 @@ namespace snake {
 
 class Engine {
 public:
-    Engine(Graph *graph) : graph{graph}, move{}, path{} {}
+    Engine(Graph *graph) : graph{graph}, move{}, search_path{} {}
 
     Graph *graph;
 
     virtual void initialize() {}
 
+    // true if move is updated
+    // false if intermediate step
     virtual bool update() = 0;
 
     virtual void set_move(Direction dir) {}
 
     Direction move;
 
-    std::stack<Direction> path;
-
-    int search_pos;
+    std::deque<Direction> search_path;
 };
 
 class Human : public Engine {
@@ -33,7 +33,6 @@ public:
     Human(Graph *graph) : Engine{graph} {}
 
     bool update() {
-        search_pos = graph->head;
         return true;
     }
 
@@ -65,7 +64,6 @@ public:
         } while (c != best_cost);
 
         move = best_dir;
-        search_pos = graph->head;
         return true;
     }
 

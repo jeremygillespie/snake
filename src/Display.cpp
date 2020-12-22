@@ -121,12 +121,6 @@ void Display::update_play() {
     stats.last_frame_ticks = SDL_GetTicks();
 
     if (SDL_GetTicks() >= config.update_interval + stats.last_update_ticks) {
-
-        int fps = stats.frames_per_second(1);
-        int mps = stats.moves_per_second(1);
-        std::cout << "FPS: " << fps / 10 << "." << fps % 10 << "\n";
-        std::cout << "MPS: " << mps / 10 << "." << mps % 10 << "\n\n";
-
         stats.update();
 
         stats.last_update_ticks = SDL_GetTicks();
@@ -137,21 +131,30 @@ void Display::render() {
 
     SDL_RenderClear(renderer);
 
+    int point;
     SDL_Rect src{0, 0, 1, 1}, dst;
 
     SDL_RenderCopy(renderer, textures.board, &src, &layout.board);
 
+    point = graph->head;
+    for (auto it = engine->search_path.begin(); it != engine->search_path.end();
+         ++it) {
+        dst = vertex(graph->x(point), graph->y(point));
+        SDL_RenderCopy(renderer, textures.head, &src, &dst);
+        dst.x += (*it).x() * layout.vert_padding * 3;
+        dst.y -= (*it).y() * layout.vert_padding * 3;
+        SDL_RenderCopy(renderer, textures.head, &src, &dst);
+
+        point = graph->point(point, *it);
+    }
+    dst = vertex(graph->x(point), graph->y(point));
+    SDL_RenderCopy(renderer, textures.head, &src, &dst);
+
     for (int x = 0; x < graph->width; ++x) {
         for (int y = 0; y < graph->height; ++y) {
+            dst = vertex(x, y);
 
-            dst.h = layout.vert_size - layout.vert_padding * 2;
-            dst.w = layout.vert_size - layout.vert_padding * 2;
-            dst.x = x * layout.vert_size + layout.vert_padding * 2 +
-                    layout.board_padding;
-            dst.y = (graph->height - y - 1) * layout.vert_size +
-                    layout.vert_padding * 2 + layout.board_padding;
-
-            int point = graph->point(x, y);
+            point = graph->point(x, y);
             if (graph->walls[point]) {
                 break;
             } else if (point == graph->apple) {
@@ -165,14 +168,21 @@ void Display::render() {
                 dst.y -= dir.y() * layout.vert_padding * 3;
                 SDL_RenderCopy(renderer, textures.snake, &src, &dst);
             }
-
-            if (point == engine->search_pos) {
-                SDL_RenderCopy(renderer, textures.head, &src, &dst);
-            }
         }
     }
 
     SDL_RenderPresent(renderer);
+}
+
+SDL_Rect Display::vertex(int x, int y) {
+    SDL_Rect result;
+    result.h = layout.vert_size - layout.vert_padding * 2;
+    result.w = layout.vert_size - layout.vert_padding * 2;
+    result.x = x * layout.vert_size + layout.vert_padding * 2 +
+               layout.board_padding;
+    result.y = (graph->height - y - 1) * layout.vert_size +
+               layout.vert_padding * 2 + layout.board_padding;
+    return result;
 }
 
 void Display::on_event(SDL_Event *event) {
