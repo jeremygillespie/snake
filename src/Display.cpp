@@ -107,12 +107,12 @@ void Display::update_play() {
         stats.accumulator -= stats.move_interval;
 
         frame_dur = SDL_GetTicks() - stats.last_frame_ticks;
-        if (frame_dur > stats.max_frame_dur) {
+        if (frame_dur > config.max_frame_dur) {
             break;
         }
     }
 
-    if (frame_dur <= stats.max_frame_dur) {
+    if (frame_dur <= config.max_frame_dur) {
         stats.accumulator += frame_dur * 0.001f;
     } else {
         stats.accumulator = 0.0f;
@@ -120,7 +120,7 @@ void Display::update_play() {
 
     stats.last_frame_ticks = SDL_GetTicks();
 
-    if (SDL_GetTicks() >= stats.update_interval + stats.last_update_ticks) {
+    if (SDL_GetTicks() >= config.update_interval + stats.last_update_ticks) {
 
         int fps = stats.frames_per_second(1);
         int mps = stats.moves_per_second(1);

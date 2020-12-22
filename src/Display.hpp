@@ -19,15 +19,17 @@ struct Layout {
     SDL_Rect board;
 };
 
+struct Config {
+    static constexpr int target_fps = 60;
+    static constexpr int max_frame_dur = 1000 / target_fps + 1;
+    static constexpr int update_interval = 500;
+    static constexpr int moving_average_n = 4;
+
+    const bool show_search;
+};
+
 class Stats {
-private:
-    const int target_fps = 60;
-
 public:
-    const int max_frame_dur = 1000 / target_fps + 1;
-    const int update_interval = 500;
-    const int moving_average_n = 4;
-
     unsigned last_frame_ticks;
     unsigned last_update_ticks;
 
@@ -48,7 +50,7 @@ public:
         move_counts.push_back(0);
         frame_counts.push_back(0);
 
-        if (move_counts.size() > moving_average_n) {
+        if (move_counts.size() > Config::moving_average_n) {
             move_counts.pop_front();
             frame_counts.pop_front();
         }
@@ -69,7 +71,7 @@ public:
             numerator *= 10;
 
         numerator *= 1000;
-        denominator *= update_interval;
+        denominator *= Config::update_interval;
 
         return numerator / denominator;
     }
@@ -89,7 +91,7 @@ public:
             numerator *= 10;
 
         numerator *= 1000;
-        denominator *= update_interval;
+        denominator *= Config::update_interval;
 
         return numerator / denominator;
     }
@@ -115,7 +117,10 @@ enum class State
 
 class Display {
 public:
-    Display(Engine *engine) : engine{engine}, graph{engine->graph} {}
+    Display(Engine *engine, bool show_search) :
+      engine{engine},
+      graph{engine->graph},
+      config{show_search} {}
 
     int execute() {
         if (initialize() == -1)
@@ -141,6 +146,7 @@ private:
     SDL_Window *window;
     SDL_Renderer *renderer;
 
+    Config config;
     Textures textures;
     Layout layout;
     Stats stats;

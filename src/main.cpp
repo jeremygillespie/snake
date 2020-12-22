@@ -7,45 +7,85 @@
 
 using namespace snake;
 
+enum class E_type
+{
+    human,
+    manhattan,
+    astar
+};
+
 int main(int argc, char *argv[]) {
 
-    // initialize graph
-    int width = 8, height = 8, x = 3, y = 3, length = 4;
-    if (argc > 2) {
-        width = std::stoi(argv[1]);
-        height = std::stoi(argv[2]);
-    }
-    if (argc > 4) {
-        x = std::stoi(argv[3]);
-        y = std::stoi(argv[4]);
-    }
-    if (argc > 5) {
-        length = std::stoi(argv[5]);
+    int width = 8, height = 8, x = 0, y = 3, length = 4;
+    E_type e = E_type::human;
+    bool show_search = false;
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg0{argv[i]};
+
+        if (arg0.compare("-s") == 0) {
+            show_search = true;
+        }
+
+        if (arg0.compare("--manhattan") == 0) {
+            e = E_type::manhattan;
+        }
+
+        if (arg0.compare("--astar") == 0) {
+            e = E_type::astar;
+        }
     }
 
+    for (int i = 1; i < argc - 1; ++i) {
+        std::string arg0{argv[i]};
+        std::string arg1{argv[i + 1]};
+
+        // start length
+        if (arg0.compare("-l") == 0) {
+            length = std::stoi(arg1);
+        }
+    }
+
+    for (int i = 1; i < argc - 2; ++i) {
+        std::string arg0{argv[i]};
+        std::string arg1{argv[i + 1]};
+        std::string arg2{argv[i + 2]};
+
+        // dimensions
+        if (arg0.compare("-d") == 0) {
+            width = std::stoi(arg1);
+            height = std::stoi(arg2);
+        }
+
+        // start location
+        if (arg0.compare("-p") == 0) {
+            x = std::stoi(arg1);
+            y = std::stoi(arg2);
+        }
+    }
+
+    // init graph
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     Graph::random_engine random_engine{seed};
     Graph graph = {width, height, x, y, length, &random_engine};
 
-    // initialize engine
+    // init engine
     Engine *engine = NULL;
-
-    if (argc > 1) {
-        std::string e = argv[argc - 1];
-        if (e.compare("manhattan") == 0) {
-            engine = new Manhattan{&graph};
-        } else if (e.compare("astar") == 0) {
-            engine = new AStar{&graph};
-        } else if (e.compare("human") == 0) {
-            engine = new Human{&graph};
-        }
+    switch (e) {
+    case E_type::manhattan:
+        engine = new Manhattan{&graph};
+        break;
+    case E_type::astar:
+        engine = new AStar{&graph};
+        break;
+    default:
+        engine = new Human{&graph};
+        break;
     }
 
-    using default_engine = Human;
-    if (engine == NULL)
-        engine = new default_engine{&graph};
+    // init display
+    Display display = {engine, show_search};
 
     // execute
-    Display display = {engine};
     return display.execute();
 }
