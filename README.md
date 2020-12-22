@@ -26,6 +26,5 @@ This technique, in combination with a running total of moves(N, S, E, W) and tur
 - [ ] visual stats
 - [ ] wall creation
 - [ ] manhattan with reversals
-- [ ] double A* search
-- [ ] fail-faster search
+- [ ] improve search algorithm
 - [ ] file saving/loading
