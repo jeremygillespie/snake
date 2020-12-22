@@ -9,8 +9,10 @@
 namespace snake {
 
 struct Cost {
+    static constexpr int distance = 110;
     static constexpr int move = 100;
     static constexpr int turn = 1;
+    static constexpr int empty_adjacent = 1;
 };
 
 class Node {
@@ -141,7 +143,13 @@ private:
             if (dir != n->direction)
                 cost += Cost::turn;
 
-            int heuristic = graph->distance(pos, graph->apple) * Cost::move;
+            for (int d2 = 0; d2 < 4; ++d2) {
+                int p = graph->point(n->position, {d2});
+                if (graph->occupied[p] == 0)
+                    cost += Cost::empty_adjacent;
+            }
+
+            int heuristic = graph->distance(pos, graph->apple) * Cost::distance;
 
             int priority = cost + heuristic;
 
