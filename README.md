@@ -26,6 +26,7 @@ This technique, in combination with a running total of moves(N, S, E, W) and tur
 - [ ] visual stats
 - [ ] wall creation
 - [ ] manhattan with reversals
+  - [ ] display corners
 - [ ] improve search algorithm
   - [ ] detect partitions
   - [ ] chase tail if apple is in partition

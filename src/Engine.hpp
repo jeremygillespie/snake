@@ -154,11 +154,10 @@ public:
 
 private:
     static constexpr int cost_unsafe = 100;
-    static constexpr int cost_distance = 10;
-    static constexpr int cost_turn = 1;
+    static constexpr int cost_distance = 0;
+    static constexpr int cost_turn = 0;
 
-    const int max_cost = cost_distance * (graph->size) + cost_unsafe +
-                         cost_turn;
+    const int max_cost = cost_unsafe * 2;
 
     int cost(Direction dir) {
         if (graph->can_move(dir) == false)
@@ -199,7 +198,7 @@ private:
             if (p == graph->head)
                 continue;
 
-            if (graph->occupied[p] <= 1)
+            if (graph->occupied[p] == 0)
                 continue;
 
             return true;
@@ -216,10 +215,10 @@ private:
             if (p == -1)
                 continue;
 
-            if (graph->occupied[p] >= graph->length)
+            if (p == graph->head)
                 continue;
 
-            if (graph->occupied[p] <= 1)
+            if (graph->occupied[p] == 0)
                 continue;
 
             Direction incoming = graph->directions[p];
@@ -261,9 +260,9 @@ private:
             return x == right_inc.x();
         }
         // determined by outgoing
-        else if (x == (outgoing + Direction::turn_reverse).x()) {
+        else if (x == outgoing.x()) {
             return y == right_out.y();
-        } else if (y == (outgoing + Direction::turn_reverse).y()) {
+        } else if (y == outgoing.y()) {
             return x == right_out.x();
         }
         // corner on outside of turn
