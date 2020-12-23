@@ -85,13 +85,13 @@ private:
         if (dir != graph->directions[graph->head])
             result += 1;
 
-        if (!safe_move(dir, graph->head))
+        if (!safe(dir, graph->head))
             result += cost_unit * 4;
 
         return result;
     }
 
-    bool safe_move(Direction dir, int point) {
+    bool safe(Direction dir, int point) {
         switch (dir.value()) {
         // positive y
         case Direction::north:
@@ -115,7 +115,7 @@ private:
 
 class Reversal : public Engine {
 public:
-    Reversal(Graph *graph, bool) :
+    Reversal(Graph *graph) :
       Engine{graph},
       width{graph->width + 1},
       height{graph->height + 1} {
@@ -153,21 +153,26 @@ public:
     }
 
 private:
-    static const int cost_unit = 100;
-    const int max_cost = cost_unit * (graph->size + 1);
+    static constexpr int cost_unsafe = 100;
+    static constexpr int cost_distance = 10;
+    static constexpr int cost_turn = 1;
+
+    const int max_cost = cost_distance * (graph->size) + cost_unsafe +
+                         cost_turn;
 
     int cost(Direction dir) {
         if (graph->can_move(dir) == false)
             return max_cost;
 
-        int result = cost_unit * graph->distance(
-                                 graph->point(graph->head, dir), graph->apple);
+        int result = cost_distance *
+                     graph->distance(
+                     graph->point(graph->head, dir), graph->apple);
 
         if (dir != graph->directions[graph->head])
-            result += 1;
+            result += cost_turn;
 
-        if (!safe_move(dir, graph->head))
-            result += cost_unit * 4;
+        if (!safe(dir, graph->head))
+            result += cost_unsafe;
 
         return result;
     }
@@ -191,7 +196,7 @@ private:
             if (p == -1)
                 continue;
 
-            if (graph->occupied[p] >= graph->length)
+            if (p == graph->head)
                 continue;
 
             if (graph->occupied[p] <= 1)
@@ -202,9 +207,43 @@ private:
         return false;
     }
 
-    // TODO
     bool polarity(int cor) {
+        for (int i = 0; i < 4; ++i) {
+            bool x_positive = i % 2 == 0;
+            bool y_positive = i / 2 == 0;
+            int p = point(cor, x_positive, y_positive);
+
+            if (p == -1)
+                continue;
+
+            if (graph->occupied[p] >= graph->length)
+                continue;
+
+            if (graph->occupied[p] <= 1)
+                continue;
+
+            Direction incoming = graph->directions[p];
+            Direction outgoing = find_outgoing(p);
+
+            return polarity(incoming, outgoing, x_positive, y_positive);
+        }
         return false;
+    }
+
+    Direction find_outgoing(int p) {
+        for (int d = 0; d < 4; ++d) {
+            int p2 = graph->point(p, {d});
+
+            if (p2 == -1)
+                continue;
+
+            Direction dir = graph->directions[p2];
+
+            if (graph->point(p, dir + Direction::turn_reverse) == p)
+                return dir;
+        }
+
+        return {};
     }
 
     bool polarity(
@@ -267,7 +306,7 @@ private:
         return result;
     }
 
-    bool safe_move(Direction dir, int p) {
+    bool safe(Direction dir, int p) {
         // TODO: wall corners
 
         Direction incoming = graph->directions[p];

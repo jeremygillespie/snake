@@ -160,18 +160,18 @@ void Display::render() {
                 break;
             } else if (point == graph->apple) {
                 SDL_RenderCopy(renderer, textures.apple, &src, &dst);
-            } else if (point == graph->head) {
-                SDL_RenderCopy(renderer, textures.snake, &src, &dst);
-            } else if (graph->occupied[point] >= 1) {
-                Direction dir = graph->directions[point];
+            } else if (graph->occupied[point] > 1) {
+                Direction dir = graph->directions[point] +
+                                Direction::turn_reverse;
                 SDL_RenderCopy(renderer, textures.snake, &src, &dst);
                 dst.x += dir.x() * layout.vert_padding * 3;
                 dst.y -= dir.y() * layout.vert_padding * 3;
                 SDL_RenderCopy(renderer, textures.snake, &src, &dst);
+            } else if (graph->occupied[point] == 1) {
+                SDL_RenderCopy(renderer, textures.snake, &src, &dst);
             }
         }
     }
-
     SDL_RenderPresent(renderer);
 }
 

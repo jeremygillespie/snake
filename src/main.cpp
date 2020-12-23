@@ -11,6 +11,7 @@ enum class E_type
 {
     human,
     manhattan,
+    reversal,
     astar
 };
 
@@ -29,6 +30,10 @@ int main(int argc, char *argv[]) {
 
         if (arg0.compare("--manhattan") == 0) {
             e = E_type::manhattan;
+        }
+
+        if (arg0.compare("--reversal") == 0) {
+            e = E_type::reversal;
         }
 
         if (arg0.compare("--manastar") == 0) {
@@ -74,6 +79,9 @@ int main(int argc, char *argv[]) {
     switch (e) {
     case E_type::manhattan:
         engine = new Manhattan{&graph};
+        break;
+    case E_type::reversal:
+        engine = new Reversal{&graph};
         break;
     case E_type::astar:
         engine = new Manhattan_AStar{&graph, show_search};

@@ -97,7 +97,6 @@ public:
     };
 
     void move(Direction dir) {
-        directions[head] = dir;
         head = point(head, dir);
         if (head == -1)
             return;
