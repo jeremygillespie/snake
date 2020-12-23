@@ -115,20 +115,7 @@ private:
 
 class Reversal : public Engine {
 public:
-    Reversal(Graph *graph) :
-      Engine{graph},
-      width{graph->width + 1},
-      height{graph->height + 1} {
-        for (int p = 0; p < graph->size; ++p) {
-            if (graph->occupied[p]) {
-                for (int i = 0; i < 4; ++i) {
-                    bool x_positive = i % 2 == 0;
-                    bool y_positive = i / 2 == 0;
-                    int cor = corner(p, x_positive, y_positive);
-                }
-            }
-        }
-    }
+    Reversal(Graph *graph) : Engine{graph} {}
 
     bool update() {
         int best_cost = max_cost;
@@ -176,59 +163,6 @@ private:
         return result;
     }
 
-    const int width, height;
-
-    int x(int cor) {
-        return cor / height;
-    }
-
-    int y(int cor) {
-        return cor % height;
-    }
-
-    bool has_polarity(int cor) {
-        for (int i = 0; i < 4; ++i) {
-            bool x_positive = i % 2 == 0;
-            bool y_positive = i / 2 == 0;
-            int p = point(cor, x_positive, y_positive);
-
-            if (p == -1)
-                continue;
-
-            if (p == graph->head)
-                continue;
-
-            if (graph->occupied[p] == 0)
-                continue;
-
-            return true;
-        }
-        return false;
-    }
-
-    bool polarity(int cor) {
-        for (int i = 0; i < 4; ++i) {
-            bool x_positive = i % 2 == 0;
-            bool y_positive = i / 2 == 0;
-            int p = point(cor, x_positive, y_positive);
-
-            if (p == -1)
-                continue;
-
-            if (p == graph->head)
-                continue;
-
-            if (graph->occupied[p] == 0)
-                continue;
-
-            Direction incoming = graph->directions[p];
-            Direction outgoing = find_outgoing(p);
-
-            return polarity(incoming, outgoing, x_positive, y_positive);
-        }
-        return false;
-    }
-
     Direction find_outgoing(int p) {
         for (int d = 0; d < 4; ++d) {
             int p2 = graph->point(p, {d});
@@ -245,82 +179,17 @@ private:
         return {};
     }
 
-    bool polarity(
-    Direction incoming, Direction outgoing, bool x_positive, bool y_positive) {
-        int x = x_positive ? 1 : -1;
-        int y = y_positive ? 1 : -1;
-
-        Direction right_inc = incoming + Direction::turn_right;
-        Direction right_out = outgoing + Direction::turn_right;
-
-        // determined by incoming
-        if (x == (incoming + Direction::turn_reverse).x()) {
-            return y == right_inc.y();
-        } else if (y == (incoming + Direction::turn_reverse).y()) {
-            return x == right_inc.x();
-        }
-        // determined by outgoing
-        else if (x == outgoing.x()) {
-            return y == right_out.y();
-        } else if (y == outgoing.y()) {
-            return x == right_out.x();
-        }
-        // corner on outside of turn
-        else {
-            if (outgoing == (incoming + Direction::turn_right)) {
-                return false;
-            } else {
-                return true;
-            }
-        }
-    }
-
-    int corner(int p, bool x_positive, bool y_positive) {
-        int result = p;
-        if (x_positive) {
-            if (x(result) >= width - 1)
-                return -1;
-            result += height;
-        }
-        if (y_positive) {
-            if (y(result) >= height - 1)
-                return -1;
-            result += 1;
-        }
-        return result;
-    }
-
-    int point(int cor, bool x_positive, bool y_positive) {
-        int result = cor;
-        if (!x_positive) {
-            if (x(result) == 0)
-                return -1;
-            result -= height;
-        }
-        if (!y_positive) {
-            if (y(result) == 0)
-                return -1;
-            result -= 1;
-        }
-        return result;
-    }
-
     bool safe(Direction dir, int p) {
         // TODO: wall corners
 
         Direction incoming = graph->directions[p];
         Direction outgoing = dir;
 
-        for (int i = 0; i < 4; ++i) {
-            bool x_positive = i % 2 == 0;
-            bool y_positive = i / 2 == 0;
+        int dx_r = incoming.x() + (incoming + Direction::turn_right).x();
+        int dy_r = incoming.y() + (incoming + Direction::turn_right).y();
 
-            int cor = corner(p, x_positive, y_positive);
-            bool pol = polarity(incoming, outgoing, x_positive, y_positive);
-
-            if (has_polarity(cor) && polarity(cor) != pol)
-                return false;
-        }
+        int dx_l = incoming.x() + (incoming + Direction::turn_left).x();
+        int dy_l = incoming.y() + (incoming + Direction::turn_left).y();
 
         return true;
     }
