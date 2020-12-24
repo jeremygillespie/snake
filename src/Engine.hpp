@@ -82,7 +82,7 @@ private:
         int result = cost_unit * graph->distance(
                                  graph->point(graph->head, dir), graph->apple);
 
-        if (dir != graph->directions[graph->head])
+        if (dir != graph->incoming[graph->head])
             result += 1;
 
         if (!safe(dir, graph->head))
@@ -118,7 +118,7 @@ public:
     Reversal(Graph *graph) : Engine{graph} {}
 
     bool update() {
-        int best_cost = max_cost;
+        int best_cost = 1;
 
         for (int i = 0; i < 4; ++i) {
             int c = cost(Direction{i});
@@ -140,56 +140,79 @@ public:
     }
 
 private:
-    static constexpr int cost_unsafe = 100;
-    static constexpr int cost_distance = 0;
-    static constexpr int cost_turn = 0;
-
-    const int max_cost = cost_unsafe * 2;
-
     int cost(Direction dir) {
         if (graph->can_move(dir) == false)
-            return max_cost;
-
-        int result = cost_distance *
-                     graph->distance(
-                     graph->point(graph->head, dir), graph->apple);
-
-        if (dir != graph->directions[graph->head])
-            result += cost_turn;
+            return 1;
 
         if (!safe(dir, graph->head))
-            result += cost_unsafe;
+            return 1;
 
-        return result;
+        return 0;
     }
 
     Direction find_outgoing(int p) {
-        for (int d = 0; d < 4; ++d) {
-            int p2 = graph->point(p, {d});
-
-            if (p2 == -1)
-                continue;
-
-            Direction dir = graph->directions[p2];
-
-            if (graph->point(p, dir + Direction::turn_reverse) == p)
+        for (int d = 3; d >= 0; --d) {
+            Direction dir{d};
+            if (graph->incoming[graph->point(p, dir)] == dir)
                 return dir;
         }
-
         return {};
     }
 
     bool safe(Direction dir, int p) {
-        // TODO: wall corners
 
-        Direction incoming = graph->directions[p];
-        Direction outgoing = dir;
+        Direction in = graph->incoming[p];
+        Direction out = dir;
 
-        int dx_r = incoming.x() + (incoming + Direction::turn_right).x();
-        int dy_r = incoming.y() + (incoming + Direction::turn_right).y();
+        int p_new = graph->point(p, out);
+        int p_old = graph->point(p, in + Direction::turn_reverse);
 
-        int dx_l = incoming.x() + (incoming + Direction::turn_left).x();
-        int dy_l = incoming.y() + (incoming + Direction::turn_left).y();
+        for (int i = 0; i < 4; ++i) {
+            Direction dir_offset{i};
+            int p_comp = p;
+            p_comp = graph->point(p_comp, dir_offset);
+            p_comp = graph->point(p_comp, dir_offset + Direction::turn_right);
+
+            if (graph->occupied[p_comp] == 0)
+                continue;
+            if (graph->incoming[p_comp] == out && graph->outgoing[p_comp] == in)
+                return false;
+        }
+
+        for (int i = 0; i < 4; ++i) {
+            Direction dir_offset{i};
+            if (
+            dir_offset == out || dir_offset == out + Direction::turn_reverse)
+                continue;
+
+            int p_comp = p_new;
+            p_comp = graph->point(p_comp, dir_offset);
+
+            if (graph->occupied[p_comp] == 0)
+                continue;
+            if (graph->outgoing[p_comp] == out)
+                return false;
+            if (graph->incoming[p_comp] == out)
+                return false;
+        }
+
+        for (int i = 0; i < 4; ++i) {
+            Direction dir_offset{i};
+            if (
+            dir_offset == in + Direction::turn_reverse || dir_offset == out ||
+            dir_offset == out + Direction::turn_reverse)
+                continue;
+
+            int p_comp = p;
+            p_comp = graph->point(p_comp, dir_offset);
+
+            if (graph->occupied[p_comp] == 0)
+                continue;
+            if (graph->outgoing[p_comp] == out)
+                return false;
+            if (graph->incoming[p_comp] == out)
+                return false;
+        }
 
         return true;
     }

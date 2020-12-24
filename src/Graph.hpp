@@ -58,7 +58,8 @@ public:
 
     std::vector<int> occupied;
     std::vector<bool> walls;
-    std::vector<Direction> directions;
+    std::vector<Direction> incoming;
+    std::vector<Direction> outgoing;
 
     int point(int x, int y) const {
         if (x < 0 || x >= width || y < 0 || y >= height)
@@ -97,12 +98,13 @@ public:
     };
 
     void move(Direction dir) {
+        outgoing[head] = dir;
         head = point(head, dir);
         if (head == -1)
             return;
 
         occupied[head] = length + 1;
-        directions[head] = dir;
+        incoming[head] = dir;
         if (head == apple) {
             ++length;
             update_apple();
@@ -138,7 +140,8 @@ public:
       length{length},
       occupied(size, false),
       walls(size, false),
-      directions(size, Direction{}),
+      incoming(size, Direction{}),
+      outgoing(size, Direction{}),
       r_engine{r_engine} {
         for (int i = 0; i < length; ++i) {
             int p = point(x, y - i);

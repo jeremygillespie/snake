@@ -109,7 +109,7 @@ private:
         search_tree = {};
         search_tree.reserve(max_nodes);
         search_tree.push_back(Node{
-        graph->head, graph->directions[graph->head], search_tree, graph->size});
+        graph->head, graph->outgoing[graph->head], search_tree, graph->size});
 
         search_queue = {};
         search_queue.push({search_tree.begin(), 0});

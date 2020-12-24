@@ -161,7 +161,7 @@ void Display::render() {
             } else if (point == graph->apple) {
                 SDL_RenderCopy(renderer, textures.apple, &src, &dst);
             } else if (graph->occupied[point] > 1) {
-                Direction dir = graph->directions[point] +
+                Direction dir = graph->incoming[point] +
                                 Direction::turn_reverse;
                 SDL_RenderCopy(renderer, textures.snake, &src, &dst);
                 dst.x += dir.x() * layout.vert_padding * 3;
@@ -255,7 +255,7 @@ void Display::on_event(SDL_Event *event) {
 void Display::on_click(int x, int y) {}
 
 void Display::on_dir(Direction dir) {
-    if (dir != graph->directions[graph->head] + Direction::turn_reverse)
+    if (dir != graph->incoming[graph->head] + Direction::turn_reverse)
         engine->set_move(dir);
 }
 
@@ -271,7 +271,7 @@ void Display::on_resize(int width, int height) {
                            graph->height;
     }
 
-    layout.vert_padding = layout.vert_size / 10;
+    layout.vert_padding = layout.vert_size / 5;
 
     layout.board.w = layout.vert_padding * 2 + graph->width * layout.vert_size;
     layout.board.h = layout.vert_padding * 2 + graph->height * layout.vert_size;
