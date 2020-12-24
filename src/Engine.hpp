@@ -136,6 +136,10 @@ public:
         } while (c != best_cost);
 
         move = best_dir;
+
+        if (edge_polarity_dur > 0)
+            --edge_polarity_dur;
+
         return true;
     }
 
@@ -150,16 +154,40 @@ private:
         return 0;
     }
 
-    Direction find_outgoing(int p) {
-        for (int d = 3; d >= 0; --d) {
-            Direction dir{d};
-            if (graph->incoming[graph->point(p, dir)] == dir)
-                return dir;
-        }
-        return {};
-    }
+    int edge_polarity_dur = 0;
+    bool edge_polarity = false;
 
     bool safe(Direction dir, int p) {
+        bool polarity;
+        bool edge = false;
+        if (graph->x(p) == 0) {
+            edge = true;
+            polarity = dir.value() == Direction::north;
+        } else if (graph->y(p) == 0) {
+            edge = true;
+            polarity = dir.value() == Direction::west;
+        } else if (graph->x(p) == graph->width - 1) {
+            edge = true;
+            polarity = dir.value() == Direction::south;
+        } else if (graph->y(p) == graph->height - 1) {
+            edge = true;
+            polarity = dir.value() == Direction::east;
+        }
+
+        if (edge) {
+            if (edge_polarity_dur > 0) {
+                if (edge_polarity == polarity) {
+                    edge_polarity_dur = graph->length;
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                edge_polarity_dur = graph->length;
+                edge_polarity = polarity;
+                return true;
+            }
+        }
 
         Direction in = graph->incoming[p];
         Direction out = dir;
@@ -188,7 +216,7 @@ private:
             int p_comp = p_new;
             p_comp = graph->point(p_comp, dir_offset);
 
-            if (graph->occupied[p_comp] == 0)
+            if (graph->occupied[p_comp] <= 1)
                 continue;
             if (graph->outgoing[p_comp] == out)
                 return false;
@@ -206,7 +234,7 @@ private:
             int p_comp = p;
             p_comp = graph->point(p_comp, dir_offset);
 
-            if (graph->occupied[p_comp] == 0)
+            if (graph->occupied[p_comp] <= 1)
                 continue;
             if (graph->outgoing[p_comp] == out)
                 return false;
