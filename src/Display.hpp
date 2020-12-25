@@ -17,8 +17,27 @@ struct Config {
     static constexpr int moving_average_n = 4;
 };
 
+struct Flat_texture {
+    SDL_Texture *tex;
+    const uint8_t r, g, b;
+
+    Flat_texture(uint8_t r, uint8_t g, uint8_t b) :
+      r{r},
+      g{g},
+      b{b},
+      tex{NULL} {}
+};
+
 struct Textures {
-    SDL_Texture *snake, *apple, *head, *board, *button;
+    Flat_texture snake, apple, head, corner_l, corner_r, board;
+
+    Textures() :
+      snake(0, 170, 0),
+      apple(200, 0, 0),
+      head(200, 170, 0),
+      corner_l(200, 100, 0),
+      corner_r(0, 0, 200),
+      board(0, 0, 0) {}
 };
 
 struct Layout {
@@ -159,6 +178,7 @@ private:
     void update_play();
     void render();
     SDL_Rect vertex(int x, int y);
+    SDL_Rect corner(int x, int y);
 
     void on_event(SDL_Event *event);
     void on_click(int x, int y);

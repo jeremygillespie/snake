@@ -20,8 +20,8 @@ public:
     using it_t = std::vector<Node>::iterator;
 
     Node(
-    int position, Direction direction, std::vector<Node> &tree,
-    int graph_size) :
+        int position, Direction direction, std::vector<Node> &tree,
+        int graph_size) :
       position{position},
       time{0},
       cost{0},
@@ -82,7 +82,7 @@ public:
 
         // follow old search
         search_path = {};
-        move = result_path.front();
+        next_move = result_path.front();
         result_path.pop_front();
         return true;
     }
@@ -100,8 +100,8 @@ private:
     std::vector<Node> search_tree;
 
     std::priority_queue<
-    Node_comp::pair_t, std::vector<Node_comp::pair_t>, Node_comp>
-    search_queue;
+        Node_comp::pair_t, std::vector<Node_comp::pair_t>, Node_comp>
+        search_queue;
 
     Node::it_t n;
 
@@ -109,7 +109,8 @@ private:
         search_tree = {};
         search_tree.reserve(max_nodes);
         search_tree.push_back(Node{
-        graph->head, graph->outgoing[graph->head], search_tree, graph->size});
+            graph->head, graph->outgoing[graph->head], search_tree,
+            graph->size});
 
         search_queue = {};
         search_queue.push({search_tree.begin(), 0});
@@ -166,7 +167,7 @@ private:
 
             if (search_tree.size() == search_tree.capacity()) {
                 fallback.update();
-                move = fallback.move;
+                next_move = fallback.next_move;
                 return true;
             }
         }
@@ -182,7 +183,7 @@ private:
 
         if (search_queue.empty()) {
             fallback.update();
-            move = fallback.move;
+            next_move = fallback.next_move;
             return true;
         }
 

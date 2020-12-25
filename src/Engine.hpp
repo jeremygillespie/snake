@@ -11,11 +11,17 @@ namespace snake {
 
 class Engine {
 public:
-    Engine(Graph *graph, bool show_search = false) :
+    Engine(
+        Graph *graph, bool show_search = false, int width = 0, int height = 0) :
       graph{graph},
-      move{},
+      next_move{},
+      show_search{show_search},
       search_path{},
-      show_search{show_search} {}
+      width{width},
+      height{height},
+      size{width * height},
+      corners(size, 0),
+      corner_vals(size, 0) {}
 
     Graph *graph;
 
@@ -25,11 +31,24 @@ public:
 
     virtual void set_move(Direction dir) {}
 
-    Direction move;
+    virtual void move() {
+        graph->move(next_move);
+    }
 
-    std::deque<Direction> search_path;
+    Direction next_move;
 
     const bool show_search;
+    std::deque<Direction> search_path;
+
+    const int width, height, size;
+
+    int &corner(int p) {
+        return corner_vals[corners[p]];
+    }
+
+protected:
+    std::vector<int> corners;
+    std::vector<int> corner_vals;
 };
 
 class Human : public Engine {
@@ -41,7 +60,7 @@ public:
     }
 
     void set_move(Direction dir) {
-        move = dir;
+        next_move = dir;
     }
 };
 
@@ -63,11 +82,11 @@ public:
         int c = -1;
         do {
             best_dir = {
-            std::uniform_int_distribution<>(0, 3)(*graph->r_engine)};
+                std::uniform_int_distribution<>(0, 3)(*graph->r_engine)};
             c = cost(best_dir);
         } while (c != best_cost);
 
-        move = best_dir;
+        next_move = best_dir;
         return true;
     }
 
@@ -79,8 +98,9 @@ private:
         if (graph->can_move(dir) == false)
             return max_cost;
 
-        int result = cost_unit * graph->distance(
-                                 graph->point(graph->head, dir), graph->apple);
+        int result =
+            cost_unit *
+            graph->distance(graph->point(graph->head, dir), graph->apple);
 
         if (dir != graph->incoming[graph->head])
             result += 1;
@@ -115,7 +135,30 @@ private:
 
 class Reversal : public Engine {
 public:
-    Reversal(Graph *graph) : Engine{graph} {}
+    Reversal(Graph *graph, bool show_search) :
+      Engine{graph, show_search, graph->width + 1, graph->height + 1},
+      occupied(size, false) {
+
+        for (int cor = 0; cor < size; ++cor) {
+            if (cor / height == 0 || cor % height == 0 ||
+                cor / height == width - 1 || cor % height == height - 1) {
+                corners[cor] = 0;
+            } else {
+                corners[cor] = cor;
+            }
+        }
+
+        corner_vals[0] = Direction::turn_left;
+
+        for (int p = 0; p < graph->size; ++p) {
+            if (graph->occupied[p] != 0) {
+                corner(corner_right(p)) =
+                    polarity_right(Direction{}, Direction{});
+                corner(corner_left(p)) =
+                    polarity_left(Direction{}, Direction{});
+            }
+        }
+    }
 
     bool update() {
         int best_cost = 1;
@@ -131,19 +174,44 @@ public:
         int c = -1;
         do {
             best_dir = {
-            std::uniform_int_distribution<>(0, 3)(*graph->r_engine)};
+                std::uniform_int_distribution<>(0, 3)(*graph->r_engine)};
             c = cost(best_dir);
         } while (c != best_cost);
 
-        move = best_dir;
-
-        if (edge_polarity_dur > 0)
-            --edge_polarity_dur;
+        next_move = best_dir;
 
         return true;
     }
 
+    void move() {
+
+        Direction incoming = graph->incoming[graph->head];
+        Direction outgoing = next_move;
+        corner(corner_right(graph->head)) = polarity_right(incoming, outgoing);
+        corner(corner_left(graph->head)) = polarity_left(incoming, outgoing);
+
+        graph->move(next_move);
+
+        std::fill(occupied.begin(), occupied.end(), false);
+
+        for (int cor = 0; cor < size; ++cor) {
+            for (int d = 0; d < 4; ++d) {
+                int p = point(cor, Direction{d});
+                if (p != -1 && graph->occupied[p] > 1) {
+                    occupied[corners[cor]] = true;
+                }
+            }
+        }
+
+        for (int cor = 0; cor < size; ++cor) {
+            if (!occupied[corners[cor]])
+                corner(cor) = Direction::turn_none;
+        }
+    }
+
 private:
+    std::vector<bool> occupied;
+
     int cost(Direction dir) {
         if (graph->can_move(dir) == false)
             return 1;
@@ -154,93 +222,82 @@ private:
         return 0;
     }
 
-    int edge_polarity_dur = 0;
-    bool edge_polarity = false;
+    int polarity_right(Direction incoming, Direction outgoing) {
+        if (outgoing == incoming + Direction::turn_right)
+            return Direction::turn_left;
+        else
+            return Direction::turn_right;
+    }
+
+    int polarity_left(Direction incoming, Direction outgoing) {
+        if (outgoing == incoming + Direction::turn_left)
+            return Direction::turn_right;
+        else
+            return Direction::turn_left;
+    }
+
+    int corner_right(int p) {
+        Direction incoming = graph->incoming[p];
+
+        int dx = incoming.x() + (incoming + Direction::turn_right).x();
+        int dy = incoming.y() + (incoming + Direction::turn_right).y();
+
+        int x = graph->x(p);
+        if (dx > 0)
+            ++x;
+
+        int y = graph->y(p);
+        if (dy > 0)
+            ++y;
+
+        return x * height + y;
+    }
+
+    int corner_left(int p) {
+        Direction incoming = graph->incoming[p];
+
+        int dx = incoming.x() + (incoming + Direction::turn_left).x();
+        int dy = incoming.y() + (incoming + Direction::turn_left).y();
+
+        int x = graph->x(p);
+        if (dx > 0)
+            ++x;
+
+        int y = graph->y(p);
+        if (dy > 0)
+            ++y;
+
+        return x * height + y;
+    }
+
+    int point(int cor, Direction dir) {
+        int dx = dir.x() + (dir + Direction::turn_right).x();
+        int dy = dir.y() + (dir + Direction::turn_right).y();
+
+        int x = cor / height;
+        if (dx < 0)
+            --x;
+
+        int y = cor % height;
+        if (dy < 0)
+            --y;
+
+        return graph->point(x, y);
+    }
 
     bool safe(Direction dir, int p) {
-        bool polarity;
-        bool edge = false;
-        if (graph->x(p) == 0) {
-            edge = true;
-            polarity = dir.value() == Direction::north;
-        } else if (graph->y(p) == 0) {
-            edge = true;
-            polarity = dir.value() == Direction::west;
-        } else if (graph->x(p) == graph->width - 1) {
-            edge = true;
-            polarity = dir.value() == Direction::south;
-        } else if (graph->y(p) == graph->height - 1) {
-            edge = true;
-            polarity = dir.value() == Direction::east;
-        }
+        Direction incoming = graph->incoming[p];
+        Direction outgoing = dir;
 
-        if (edge) {
-            if (edge_polarity_dur > 0) {
-                if (edge_polarity == polarity) {
-                    edge_polarity_dur = graph->length;
-                    return true;
-                } else {
-                    return false;
-                }
-            } else {
-                edge_polarity_dur = graph->length;
-                edge_polarity = polarity;
-                return true;
-            }
-        }
+        int cor = corner_left(p);
+        if (corner(cor) != Direction::turn_none &&
+            corner(cor) != polarity_left(incoming, outgoing))
+            return false;
 
-        Direction in = graph->incoming[p];
-        Direction out = dir;
-
-        int p_new = graph->point(p, out);
-        int p_old = graph->point(p, in + Direction::turn_reverse);
-
-        for (int i = 0; i < 4; ++i) {
-            Direction dir_offset{i};
-            int p_comp = p;
-            p_comp = graph->point(p_comp, dir_offset);
-            p_comp = graph->point(p_comp, dir_offset + Direction::turn_right);
-
-            if (graph->occupied[p_comp] == 0)
-                continue;
-            if (graph->incoming[p_comp] == out && graph->outgoing[p_comp] == in)
-                return false;
-        }
-
-        for (int i = 0; i < 4; ++i) {
-            Direction dir_offset{i};
-            if (
-            dir_offset == out || dir_offset == out + Direction::turn_reverse)
-                continue;
-
-            int p_comp = p_new;
-            p_comp = graph->point(p_comp, dir_offset);
-
-            if (graph->occupied[p_comp] <= 1)
-                continue;
-            if (graph->outgoing[p_comp] == out)
-                return false;
-            if (graph->incoming[p_comp] == out)
-                return false;
-        }
-
-        for (int i = 0; i < 4; ++i) {
-            Direction dir_offset{i};
-            if (
-            dir_offset == in + Direction::turn_reverse || dir_offset == out ||
-            dir_offset == out + Direction::turn_reverse)
-                continue;
-
-            int p_comp = p;
-            p_comp = graph->point(p_comp, dir_offset);
-
-            if (graph->occupied[p_comp] <= 1)
-                continue;
-            if (graph->outgoing[p_comp] == out)
-                return false;
-            if (graph->incoming[p_comp] == out)
-                return false;
-        }
+        cor = corner_right(p);
+        if (corner(cor) != Direction::turn_none &&
+            corner(cor) != polarity_right(incoming, outgoing))
+            return false;
 
         return true;
     }

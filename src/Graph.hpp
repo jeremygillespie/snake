@@ -54,7 +54,7 @@ public:
     random_engine *r_engine;
 
     const int width, height;
-    int size, head, apple, length;
+    int size, head, tail, apple, length;
 
     std::vector<int> occupied;
     std::vector<bool> walls;
@@ -100,6 +100,7 @@ public:
     void move(Direction dir) {
         outgoing[head] = dir;
         head = point(head, dir);
+
         if (head == -1)
             return;
 
@@ -109,7 +110,7 @@ public:
             ++length;
             update_apple();
         } else {
-            // decrement tail
+            tail = point(tail, outgoing[tail]);
             for (auto i = occupied.begin(); i != occupied.end(); ++i) {
                 if (*i > 0)
                     --(*i);
@@ -120,8 +121,8 @@ public:
     void update_apple() {
         apple = -1;
         if (length < size) {
-            int r = std::uniform_int_distribution<>(1, size - length)(
-            *r_engine);
+            int r =
+                std::uniform_int_distribution<>(1, size - length)(*r_engine);
             for (int i = 0; i < r; ++i) {
                 ++apple;
                 while (occupied[apple] || walls[apple])
@@ -131,11 +132,13 @@ public:
     }
 
     Graph(
-    int width, int height, int x, int y, int length, random_engine *r_engine) :
+        int width, int height, int x, int y, int length,
+        random_engine *r_engine) :
       width{width},
       height{height},
       size{width * height},
       head{point(x, y)},
+      tail{point(x, y - length + 1)},
       apple{-1},
       length{length},
       occupied(size, false),

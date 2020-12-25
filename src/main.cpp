@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
         engine = new Manhattan{&graph};
         break;
     case E_type::reversal:
-        engine = new Reversal{&graph};
+        engine = new Reversal{&graph, show_search};
         break;
     case E_type::astar:
         engine = new Manhattan_AStar{&graph, show_search};

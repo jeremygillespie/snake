@@ -11,14 +11,14 @@ int Display::initialize() {
     }
 
     window = SDL_CreateWindow(
-    "Snake", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 900, 600,
-    SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+        "Snake", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 900, 600,
+        SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     if (window == NULL) {
         return false;
     }
 
     renderer = SDL_CreateRenderer(
-    window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+        window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (renderer == NULL) {
         return false;
     }
@@ -27,17 +27,18 @@ int Display::initialize() {
 
     SDL_Surface *surface = SDL_CreateRGBSurface(0, 32, 32, 32, 0, 0, 0, 0);
 
-    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 170, 0));
-    textures.snake = SDL_CreateTextureFromSurface(renderer, surface);
+    auto init_texture = [=](Flat_texture *f) {
+        SDL_FillRect(
+            surface, NULL, SDL_MapRGB(surface->format, f->r, f->g, f->b));
+        f->tex = SDL_CreateTextureFromSurface(renderer, surface);
+    };
 
-    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 200, 0, 0));
-    textures.apple = SDL_CreateTextureFromSurface(renderer, surface);
-
-    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 200, 170, 0));
-    textures.head = SDL_CreateTextureFromSurface(renderer, surface);
-
-    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 0, 0));
-    textures.board = SDL_CreateTextureFromSurface(renderer, surface);
+    init_texture(&textures.snake);
+    init_texture(&textures.apple);
+    init_texture(&textures.head);
+    init_texture(&textures.corner_l);
+    init_texture(&textures.corner_r);
+    init_texture(&textures.board);
 
     SDL_FreeSurface(surface);
 
@@ -82,8 +83,9 @@ void Display::update_play() {
         int old_length = graph->length;
 
         if (engine->update()) {
-            if (graph->can_move(engine->move) && graph->length < graph->size) {
-                graph->move(engine->move);
+            if (graph->can_move(engine->next_move) &&
+                graph->length < graph->size) {
+                engine->move();
 
                 ++stats.moves;
                 ++stats.move_counts.back();
@@ -133,45 +135,64 @@ void Display::render() {
     int point;
     SDL_Rect src{0, 0, 1, 1}, dst;
 
-    SDL_RenderCopy(renderer, textures.board, &src, &layout.board);
+    SDL_RenderCopy(renderer, textures.board.tex, &src, &layout.board);
 
+    // render search_path
     if (engine->show_search) {
         point = graph->head;
         for (auto it = engine->search_path.begin();
              it != engine->search_path.end(); ++it) {
             dst = vertex(graph->x(point), graph->y(point));
-            SDL_RenderCopy(renderer, textures.head, &src, &dst);
+            SDL_RenderCopy(renderer, textures.head.tex, &src, &dst);
             dst.x += (*it).x() * layout.vert_padding * 3;
             dst.y -= (*it).y() * layout.vert_padding * 3;
-            SDL_RenderCopy(renderer, textures.head, &src, &dst);
+            SDL_RenderCopy(renderer, textures.head.tex, &src, &dst);
 
             point = graph->point(point, *it);
         }
         dst = vertex(graph->x(point), graph->y(point));
-        SDL_RenderCopy(renderer, textures.head, &src, &dst);
+        SDL_RenderCopy(renderer, textures.head.tex, &src, &dst);
     }
 
+    // render graph
     for (int x = 0; x < graph->width; ++x) {
         for (int y = 0; y < graph->height; ++y) {
             dst = vertex(x, y);
-
             point = graph->point(x, y);
+
             if (graph->walls[point]) {
                 break;
             } else if (point == graph->apple) {
-                SDL_RenderCopy(renderer, textures.apple, &src, &dst);
+                SDL_RenderCopy(renderer, textures.apple.tex, &src, &dst);
             } else if (graph->occupied[point] > 1) {
-                Direction dir = graph->incoming[point] +
-                                Direction::turn_reverse;
-                SDL_RenderCopy(renderer, textures.snake, &src, &dst);
+                Direction dir =
+                    graph->incoming[point] + Direction::turn_reverse;
+                SDL_RenderCopy(renderer, textures.snake.tex, &src, &dst);
                 dst.x += dir.x() * layout.vert_padding * 3;
                 dst.y -= dir.y() * layout.vert_padding * 3;
-                SDL_RenderCopy(renderer, textures.snake, &src, &dst);
+                SDL_RenderCopy(renderer, textures.snake.tex, &src, &dst);
             } else if (graph->occupied[point] == 1) {
-                SDL_RenderCopy(renderer, textures.snake, &src, &dst);
+                SDL_RenderCopy(renderer, textures.snake.tex, &src, &dst);
             }
         }
     }
+
+    // render corners
+    if (engine->show_search) {
+        for (int x = 0; x < engine->width; ++x) {
+            for (int y = 0; y < engine->height; ++y) {
+                dst = corner(x, y);
+                point = x * engine->height + y;
+
+                if (engine->corner(point) == Direction::turn_left) {
+                    SDL_RenderCopy(renderer, textures.corner_l.tex, &src, &dst);
+                } else if (engine->corner(point) == Direction::turn_right) {
+                    SDL_RenderCopy(renderer, textures.corner_r.tex, &src, &dst);
+                }
+            }
+        }
+    }
+
     SDL_RenderPresent(renderer);
 }
 
@@ -179,10 +200,23 @@ SDL_Rect Display::vertex(int x, int y) {
     SDL_Rect result;
     result.h = layout.vert_size - layout.vert_padding * 2;
     result.w = layout.vert_size - layout.vert_padding * 2;
-    result.x = x * layout.vert_size + layout.vert_padding * 2 +
-               layout.board_padding;
+    result.x =
+        x * layout.vert_size + layout.vert_padding * 2 + layout.board_padding;
     result.y = (graph->height - y - 1) * layout.vert_size +
                layout.vert_padding * 2 + layout.board_padding;
+    return result;
+}
+
+SDL_Rect Display::corner(int x, int y) {
+    SDL_Rect result;
+
+    result.h = layout.vert_padding * 2;
+    result.w = layout.vert_padding * 2;
+
+    result.x = x * layout.vert_size + layout.board_padding;
+    result.y =
+        (engine->height - y - 1) * layout.vert_size + layout.board_padding;
+
     return result;
 }
 
@@ -263,12 +297,12 @@ void Display::on_resize(int width, int height) {
 
     if (width / graph->width < height / graph->height) {
         layout.board_padding = width / 20;
-        layout.vert_size = (width - layout.board_padding * 5 / 2) /
-                           graph->width;
+        layout.vert_size =
+            (width - layout.board_padding * 5 / 2) / graph->width;
     } else {
         layout.board_padding = height / 20;
-        layout.vert_size = (height - layout.board_padding * 5 / 2) /
-                           graph->height;
+        layout.vert_size =
+            (height - layout.board_padding * 5 / 2) / graph->height;
     }
 
     layout.vert_padding = layout.vert_size / 5;
@@ -280,8 +314,12 @@ void Display::on_resize(int width, int height) {
 }
 
 void Display::terminate() {
-    SDL_DestroyTexture(textures.snake);
-    SDL_DestroyTexture(textures.apple);
+
+    for (Flat_texture f :
+         {textures.snake, textures.apple, textures.head, textures.corner_l,
+          textures.corner_r, textures.board}) {
+        SDL_DestroyTexture(f.tex);
+    }
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
