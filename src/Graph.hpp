@@ -148,7 +148,8 @@ public:
       r_engine{r_engine} {
         for (int i = 0; i < length; ++i) {
             int p = point(x, y - i);
-            occupied[p] = length - i;
+            if (p != -1)
+                occupied[p] = length - i;
         }
 
         update_apple();

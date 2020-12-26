@@ -42,7 +42,7 @@ public:
 
     const int width, height, size;
 
-    int &corner(int p) {
+    int &corner_val(int p) {
         return corner_vals[corners[p]];
     }
 
@@ -152,9 +152,9 @@ public:
 
         for (int p = 0; p < graph->size; ++p) {
             if (graph->occupied[p] != 0) {
-                corner(corner_right(p)) =
+                corner_val(corner_right(p)) =
                     polarity_right(Direction{}, Direction{});
-                corner(corner_left(p)) =
+                corner_val(corner_left(p)) =
                     polarity_left(Direction{}, Direction{});
             }
         }
@@ -187,8 +187,10 @@ public:
 
         Direction incoming = graph->incoming[graph->head];
         Direction outgoing = next_move;
-        corner(corner_right(graph->head)) = polarity_right(incoming, outgoing);
-        corner(corner_left(graph->head)) = polarity_left(incoming, outgoing);
+        corner_val(corner_right(graph->head)) =
+            polarity_right(incoming, outgoing);
+        corner_val(corner_left(graph->head)) =
+            polarity_left(incoming, outgoing);
 
         graph->move(next_move);
 
@@ -205,7 +207,31 @@ public:
 
         for (int cor = 0; cor < size; ++cor) {
             if (!occupied[corners[cor]])
-                corner(cor) = Direction::turn_none;
+                corner_val(cor) = Direction::turn_none;
+        }
+
+        for (int d1 = 0; d1 < 4; ++d1) {
+            if (graph->can_move(Direction{d1})) {
+                int p = graph->point(graph->head, Direction{d1});
+
+                bool hole = true;
+                int val = 0;
+                for (int d2 = 0; d2 < 4; ++d2) {
+                    if (corner_val(corner(p, d2)) == 0) {
+                        hole = false;
+                        break;
+                    }
+
+                    if (val == 0) {
+                        val = corner_val(corner(p, d2));
+                    }
+
+                    if (corner_val(corner(p, d2)) != val) {
+                        hole = false;
+                        break;
+                    }
+                }
+            }
         }
     }
 
@@ -276,6 +302,21 @@ private:
         return x * height + y;
     }
 
+    int corner(int p, Direction dir) {
+        int dx = dir.x() + (dir + Direction::turn_right).x();
+        int dy = dir.y() + (dir + Direction::turn_right).y();
+
+        int x = graph->x(p);
+        if (dx > 0)
+            ++x;
+
+        int y = graph->y(p);
+        if (dy > 0)
+            ++y;
+
+        return x * height + y;
+    }
+
     int point(int cor, Direction dir) {
         int dx = dir.x() + (dir + Direction::turn_right).x();
         int dy = dir.y() + (dir + Direction::turn_right).y();
@@ -296,13 +337,13 @@ private:
         Direction outgoing = dir;
 
         int cor = corner_left(p);
-        if (corner(cor) != Direction::turn_none &&
-            corner(cor) != polarity_left(incoming, outgoing))
+        if (corner_val(cor) != Direction::turn_none &&
+            corner_val(cor) != polarity_left(incoming, outgoing))
             return false;
 
         cor = corner_right(p);
-        if (corner(cor) != Direction::turn_none &&
-            corner(cor) != polarity_right(incoming, outgoing))
+        if (corner_val(cor) != Direction::turn_none &&
+            corner_val(cor) != polarity_right(incoming, outgoing))
             return false;
 
         return true;

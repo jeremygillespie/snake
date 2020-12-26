@@ -156,8 +156,6 @@ void Display::update_pause() {
                 if (graph->length == graph->size) {
                     end_play();
                 }
-            } else {
-                end_play();
             }
         }
 
@@ -221,9 +219,9 @@ void Display::render() {
                 dst = corner(x, y);
                 point = x * engine->height + y;
 
-                if (engine->corner(point) == Direction::turn_left) {
+                if (engine->corner_val(point) == Direction::turn_left) {
                     SDL_RenderCopy(renderer, textures.corner_l.tex, &src, &dst);
-                } else if (engine->corner(point) == Direction::turn_right) {
+                } else if (engine->corner_val(point) == Direction::turn_right) {
                     SDL_RenderCopy(renderer, textures.corner_r.tex, &src, &dst);
                 }
             }
@@ -267,27 +265,19 @@ void Display::on_event(SDL_Event *event) {
         switch (event->key.keysym.sym) {
         case SDLK_w:
             on_dir(Direction::north);
+            stats.manual_move = true;
             break;
         case SDLK_a:
             on_dir(Direction::west);
+            stats.manual_move = true;
             break;
         case SDLK_s:
             on_dir(Direction::south);
+            stats.manual_move = true;
             break;
         case SDLK_d:
             on_dir(Direction::east);
-            break;
-        case SDLK_UP:
-            on_dir(Direction::north);
-            break;
-        case SDLK_LEFT:
-            on_dir(Direction::west);
-            break;
-        case SDLK_DOWN:
-            on_dir(Direction::south);
-            break;
-        case SDLK_RIGHT:
-            on_dir(Direction::east);
+            stats.manual_move = true;
             break;
         case SDLK_SPACE:
             stats.manual_move = true;

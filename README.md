@@ -23,10 +23,12 @@ This technique, in combination with a running total of moves(N, S, E, W) and tur
 - [x] A* search
 - [x] stats
 - [x] show search path
-- [ ] visual stats
-- [ ] wall creation
 - [ ] manhattan with reversals
+  - [ ] hole filing
+- [ ] A* with reversals
 - [ ] improve search algorithm
   - [ ] detect partitions
   - [ ] chase tail if apple is in partition
+- [ ] visual stats
+- [ ] wall creation
 - [ ] file saving/loading
