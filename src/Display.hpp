@@ -50,6 +50,8 @@ public:
     unsigned last_frame_ticks;
     unsigned last_update_ticks;
 
+    bool manual_move = false;
+
     float move_interval = 0.5f;
     float accumulator = 0.0f;
 
@@ -130,6 +132,7 @@ enum class State
 {
     wall,
     play,
+    pause,
     end,
     quit
 };
@@ -176,6 +179,7 @@ private:
 
     void update();
     void update_play();
+    void update_pause();
     void render();
     SDL_Rect vertex(int x, int y);
     SDL_Rect corner(int x, int y);

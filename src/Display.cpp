@@ -69,8 +69,16 @@ void Display::end_play() {
 }
 
 void Display::update() {
-    if (state == State::play)
+    switch (state) {
+    case State::play:
         update_play();
+        break;
+    case State::pause:
+        update_pause();
+        break;
+    default:
+        break;
+    }
     render();
 }
 
@@ -80,11 +88,12 @@ void Display::update_play() {
     unsigned frame_dur = SDL_GetTicks() - stats.last_frame_ticks;
 
     while (stats.accumulator > 0.0f) {
-        int old_length = graph->length;
 
         if (engine->update()) {
             if (graph->can_move(engine->next_move) &&
                 graph->length < graph->size) {
+                int old_length = graph->length;
+
                 engine->move();
 
                 ++stats.moves;
@@ -125,6 +134,34 @@ void Display::update_play() {
         stats.update();
 
         stats.last_update_ticks = SDL_GetTicks();
+    }
+}
+
+void Display::update_pause() {
+    if (stats.manual_move) {
+        if (engine->update()) {
+            if (graph->can_move(engine->next_move) &&
+                graph->length < graph->size) {
+                int old_length = graph->length;
+
+                engine->move();
+
+                ++stats.moves;
+                ++stats.move_counts.back();
+
+                if (graph->length > old_length) {
+                    ++stats.apples;
+                }
+
+                if (graph->length == graph->size) {
+                    end_play();
+                }
+            } else {
+                end_play();
+            }
+        }
+
+        stats.manual_move = false;
     }
 }
 
@@ -252,6 +289,9 @@ void Display::on_event(SDL_Event *event) {
         case SDLK_RIGHT:
             on_dir(Direction::east);
             break;
+        case SDLK_SPACE:
+            stats.manual_move = true;
+            break;
         case SDLK_EQUALS:
             stats.move_interval /= 2;
             break;
@@ -262,6 +302,12 @@ void Display::on_event(SDL_Event *event) {
             switch (state) {
             case State::wall:
                 start_play();
+                break;
+            case State::play:
+                state = State::pause;
+                break;
+            case State::pause:
+                state = State::play;
                 break;
             case State::end:
                 state = State::quit;

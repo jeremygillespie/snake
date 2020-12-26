@@ -213,14 +213,14 @@ private:
     std::vector<bool> occupied;
 
     int cost(Direction dir) {
-        int result =
-            10 * graph->distance(graph->point(graph->head, dir), graph->apple);
-
         if (graph->can_move(dir) == false)
-            return result + 100;
+            return graph->size * 10 + 100;
 
         if (safe(dir, graph->head) == false)
-            return result + 50;
+            return graph->size * 10 + 50;
+
+        int result =
+            10 * graph->distance(graph->point(graph->head, dir), graph->apple);
 
         if (dir != graph->incoming[graph->head])
             return result + 1;
