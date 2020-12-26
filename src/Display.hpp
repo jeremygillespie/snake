@@ -36,7 +36,7 @@ struct Textures {
       apple(200, 0, 0),
       head(200, 170, 0),
       corner_l(200, 100, 0),
-      corner_r(0, 0, 200),
+      corner_r(50, 50, 200),
       board(0, 0, 0) {}
 };
 

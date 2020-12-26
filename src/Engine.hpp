@@ -161,11 +161,11 @@ public:
     }
 
     bool update() {
-        int best_cost = 1;
+        int best_cost = -1;
 
         for (int i = 0; i < 4; ++i) {
             int c = cost(Direction{i});
-            if (c < best_cost) {
+            if (c < best_cost || best_cost == -1) {
                 best_cost = c;
             }
         }
@@ -197,7 +197,7 @@ public:
         for (int cor = 0; cor < size; ++cor) {
             for (int d = 0; d < 4; ++d) {
                 int p = point(cor, Direction{d});
-                if (p != -1 && graph->occupied[p] > 1) {
+                if (p != -1 && graph->occupied[p] > 1 && p != graph->head) {
                     occupied[corners[cor]] = true;
                 }
             }
@@ -213,13 +213,19 @@ private:
     std::vector<bool> occupied;
 
     int cost(Direction dir) {
+        int result =
+            10 * graph->distance(graph->point(graph->head, dir), graph->apple);
+
         if (graph->can_move(dir) == false)
-            return 1;
+            return result + 100;
 
-        if (!safe(dir, graph->head))
-            return 1;
+        if (safe(dir, graph->head) == false)
+            return result + 50;
 
-        return 0;
+        if (dir != graph->incoming[graph->head])
+            return result + 1;
+
+        return result;
     }
 
     int polarity_right(Direction incoming, Direction outgoing) {
