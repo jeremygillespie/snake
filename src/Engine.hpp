@@ -1,6 +1,7 @@
 #ifndef SNAKE_ENGINE_HPP
 #define SNAKE_ENGINE_HPP
 
+#include <algorithm>
 #include <array>
 #include <deque>
 #include <random>
@@ -137,7 +138,7 @@ class Reversal : public Engine {
 public:
     Reversal(Graph *graph, bool show_search) :
       Engine{graph, show_search, graph->width + 1, graph->height + 1},
-      occupied(size, false) {
+      old_length{graph->length} {
 
         for (int cor = 0; cor < size; ++cor) {
             if (cor / height == 0 || cor % height == 0 ||
@@ -161,6 +162,7 @@ public:
     }
 
     bool update() {
+        // choose random best move
         int best_cost = -1;
 
         for (int i = 0; i < 4; ++i) {
@@ -184,74 +186,37 @@ public:
     }
 
     void move() {
+        if (old_length == graph->length) {
+            for (int cor = 0; cor < size; ++cor) {
+                if (corner_vals[cor] < 0)
+                    ++corner_vals[cor];
+                else if (corner_vals[cor] > 0)
+                    --corner_vals[cor];
+            }
+        }
+        old_length = graph->length;
 
         Direction incoming = graph->incoming[graph->head];
         Direction outgoing = next_move;
+
         corner_val(corner_right(graph->head)) =
-            polarity_right(incoming, outgoing);
+            polarity_right(incoming, outgoing) * graph->length;
         corner_val(corner_left(graph->head)) =
-            polarity_left(incoming, outgoing);
+            polarity_left(incoming, outgoing) * graph->length;
 
         graph->move(next_move);
-
-        std::fill(occupied.begin(), occupied.end(), false);
-
-        for (int cor = 0; cor < size; ++cor) {
-            for (int d = 0; d < 4; ++d) {
-                int p = point(cor, Direction{d});
-                if (p != -1 && graph->occupied[p] > 1 && p != graph->head) {
-                    occupied[corners[cor]] = true;
-                }
-            }
-        }
-
-        for (int cor = 0; cor < size; ++cor) {
-            if (!occupied[corners[cor]])
-                corner_val(cor) = Direction::turn_none;
-        }
-
-        for (int d1 = 0; d1 < 4; ++d1) {
-            if (graph->can_move(Direction{d1})) {
-                int p = graph->point(graph->head, Direction{d1});
-
-                bool hole = true;
-                int val = 0;
-                for (int d2 = 0; d2 < 4; ++d2) {
-                    if (corner_val(corner(p, d2)) == 0) {
-                        hole = false;
-                        break;
-                    }
-
-                    if (val == 0) {
-                        val = corner_val(corner(p, d2));
-                    }
-
-                    if (corner_val(corner(p, d2)) != val) {
-                        hole = false;
-                        break;
-                    }
-                }
-            }
-        }
     }
 
 private:
-    std::vector<bool> occupied;
+    int old_length;
 
     int cost(Direction dir) {
         if (graph->can_move(dir) == false)
-            return graph->size * 10 + 100;
-
+            return 1;
         if (safe(dir, graph->head) == false)
-            return graph->size * 10 + 50;
+            return 1;
 
-        int result =
-            10 * graph->distance(graph->point(graph->head, dir), graph->apple);
-
-        if (dir != graph->incoming[graph->head])
-            return result + 1;
-
-        return result;
+        return 0;
     }
 
     int polarity_right(Direction incoming, Direction outgoing) {
@@ -333,18 +298,37 @@ private:
     }
 
     bool safe(Direction dir, int p) {
+        int min_dur;
+        if (graph->point(p, dir) == graph->apple) {
+            min_dur = 1;
+        } else {
+            min_dur = 2;
+        }
+
         Direction incoming = graph->incoming[p];
         Direction outgoing = dir;
 
-        int cor = corner_left(p);
-        if (corner_val(cor) != Direction::turn_none &&
-            corner_val(cor) != polarity_left(incoming, outgoing))
-            return false;
+        int cor_l = corner_left(p);
+        int val_l = corner_val(cor_l);
+        int pol_l = polarity_left(incoming, outgoing);
 
-        cor = corner_right(p);
-        if (corner_val(cor) != Direction::turn_none &&
-            corner_val(cor) != polarity_right(incoming, outgoing))
-            return false;
+        if (std::abs(val_l) >= min_dur) {
+            if (val_l < 0 && pol_l > 0)
+                return false;
+            if (val_l > 0 && pol_l < 0)
+                return false;
+        }
+
+        int cor_r = corner_right(p);
+        int val_r = corner_val(cor_r);
+        int pol_r = polarity_right(incoming, outgoing);
+
+        if (std::abs(val_r) >= min_dur) {
+            if (val_r < 0 && pol_r > 0)
+                return false;
+            if (val_r > 0 && pol_r < 0)
+                return false;
+        }
 
         return true;
     }

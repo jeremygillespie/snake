@@ -219,9 +219,9 @@ void Display::render() {
                 dst = corner(x, y);
                 point = x * engine->height + y;
 
-                if (engine->corner_val(point) == Direction::turn_left) {
+                if (engine->corner_val(point) < 0) {
                     SDL_RenderCopy(renderer, textures.corner_l.tex, &src, &dst);
-                } else if (engine->corner_val(point) == Direction::turn_right) {
+                } else if (engine->corner_val(point) > 0) {
                     SDL_RenderCopy(renderer, textures.corner_r.tex, &src, &dst);
                 }
             }
