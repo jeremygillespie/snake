@@ -148,17 +148,6 @@ public:
                 corners[cor] = cor;
             }
         }
-
-        corner_vals[0] = Direction::turn_left;
-
-        for (int p = 0; p < graph->size; ++p) {
-            if (graph->occupied[p] != 0) {
-                corner_val(corner_right(p)) =
-                    polarity_right(Direction{}, Direction{});
-                corner_val(corner_left(p)) =
-                    polarity_left(Direction{}, Direction{});
-            }
-        }
     }
 
     bool update() {
@@ -212,7 +201,7 @@ private:
 
     int cost(Direction dir) {
         if (graph->can_move(dir) == false)
-            return 1;
+            return 2;
         if (safe(dir, graph->head) == false)
             return 1;
 
@@ -231,6 +220,14 @@ private:
             return Direction::turn_right;
         else
             return Direction::turn_left;
+    }
+
+    bool polarity_same(int val1, int val2) {
+        return (val1 > 0 && val2 > 0) || (val1 < 0 && val2 < 0);
+    }
+
+    bool polarity_diff(int val1, int val2) {
+        return (val1 > 0 && val2 < 0) || (val1 < 0 && val2 > 0);
     }
 
     int corner_right(int p) {
@@ -267,34 +264,16 @@ private:
         return x * height + y;
     }
 
-    int corner(int p, Direction dir) {
-        int dx = dir.x() + (dir + Direction::turn_right).x();
-        int dy = dir.y() + (dir + Direction::turn_right).y();
+    int corner(int cor, int dx, int dy) {
+        int x = cor / height;
+        int y = cor % height;
+        x += dx;
+        y += dy;
 
-        int x = graph->x(p);
-        if (dx > 0)
-            ++x;
-
-        int y = graph->y(p);
-        if (dy > 0)
-            ++y;
+        if (x < 0 || y < 0 || x >= width || y >= height)
+            return -1;
 
         return x * height + y;
-    }
-
-    int point(int cor, Direction dir) {
-        int dx = dir.x() + (dir + Direction::turn_right).x();
-        int dy = dir.y() + (dir + Direction::turn_right).y();
-
-        int x = cor / height;
-        if (dx < 0)
-            --x;
-
-        int y = cor % height;
-        if (dy < 0)
-            --y;
-
-        return graph->point(x, y);
     }
 
     bool safe(Direction dir, int p) {
@@ -312,23 +291,15 @@ private:
         int val_l = corner_val(cor_l);
         int pol_l = polarity_left(incoming, outgoing);
 
-        if (std::abs(val_l) >= min_dur) {
-            if (val_l < 0 && pol_l > 0)
-                return false;
-            if (val_l > 0 && pol_l < 0)
-                return false;
-        }
+        if (std::abs(val_l) >= min_dur && polarity_diff(val_l, pol_l))
+            return false;
 
         int cor_r = corner_right(p);
         int val_r = corner_val(cor_r);
         int pol_r = polarity_right(incoming, outgoing);
 
-        if (std::abs(val_r) >= min_dur) {
-            if (val_r < 0 && pol_r > 0)
-                return false;
-            if (val_r > 0 && pol_r < 0)
-                return false;
-        }
+        if (std::abs(val_r) >= min_dur && polarity_diff(val_r, pol_r))
+            return false;
 
         return true;
     }
